@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { open } from "@tauri-apps/api/dialog";
 import { homeDir } from "@tauri-apps/api/path";
 
@@ -7,10 +7,7 @@ interface DirectorySelectorProps {
   onSelect: (path: string) => void;
 }
 
-const DirectorySelector: React.FC<DirectorySelectorProps> = ({
-  label,
-  onSelect,
-}) => {
+function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
   const [selectedPath, setSelectedPath] = useState<string>("");
 
   const handleSelectDirectory = async () => {
@@ -32,11 +29,11 @@ const DirectorySelector: React.FC<DirectorySelectorProps> = ({
   };
 
   return (
-    <div className="form-control w-full max-w-xs">
+    <div className="form-control w-full max-w-md">
       <label className="label">
         <span className="label-text">{label}</span>
       </label>
-      <div className="input-group">
+      <div className="input-group flex flex-col gap-2">
         <input
           type="text"
           placeholder="Select directory"
@@ -44,12 +41,12 @@ const DirectorySelector: React.FC<DirectorySelectorProps> = ({
           value={selectedPath}
           readOnly
         />
-        <button className="btn btn-square" onClick={handleSelectDirectory}>
+        <button className="btn btn-small" onClick={handleSelectDirectory}>
           Browse
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default DirectorySelector;
