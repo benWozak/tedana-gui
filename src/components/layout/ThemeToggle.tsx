@@ -6,7 +6,7 @@ import { listen } from "@tauri-apps/api/event";
 const ThemeToggle = () => {
   const dropdownRef = useRef<HTMLDetailsElement>(null);
   const [theme, setTheme] = useState("system");
-  const [systemTheme, setSystemTheme] = useState("light");
+  const [systemTheme, setSystemTheme] = useState("emerald");
 
   useEffect(() => {
     const initTheme = async () => {
@@ -58,7 +58,7 @@ const ThemeToggle = () => {
       <summary className="btn-circle w-20">
         {theme === "system" ? (
           <Monitor size={20} />
-        ) : theme === "light" ? (
+        ) : theme === "emerald" ? (
           <Sun size={20} />
         ) : (
           <Moon size={20} />
@@ -67,16 +67,16 @@ const ThemeToggle = () => {
       <ul className="mt-3 p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52 z-[1]">
         <li>
           <a
-            onClick={() => handleThemeChange("light")}
-            className={theme === "light" ? "active" : ""}
+            onClick={() => handleThemeChange("emerald")}
+            className={theme === "emerald" ? "active" : ""}
           >
             <Sun size={16} /> Light
           </a>
         </li>
         <li>
           <a
-            onClick={() => handleThemeChange("dark")}
-            className={theme === "dark" ? "active" : ""}
+            onClick={() => handleThemeChange("dim")}
+            className={theme === "dim" ? "active" : ""}
           >
             <Moon size={16} /> Dark
           </a>

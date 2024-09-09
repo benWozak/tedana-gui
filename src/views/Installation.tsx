@@ -1,29 +1,8 @@
-import { useCopyToClipboard } from "usehooks-ts";
-import { useState, useRef } from "react";
-import { Copy, Check } from "lucide-react";
+import CodeSnippet from "../components/elements/CodeSnippet";
 
 type Props = {};
 
 function Installation({}: Props) {
-  const [_, copy] = useCopyToClipboard();
-  const [copied, setCopied] = useState(false);
-  const codeRef = useRef<HTMLElement>(null);
-
-  const handleCopy = () => {
-    if (codeRef.current) {
-      const text = codeRef.current.innerText;
-      copy(text)
-        .then(() => {
-          console.log("Copied!", { text });
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
-        })
-        .catch((error) => {
-          console.error("Failed to copy!", error);
-        });
-    }
-  };
-
   return (
     <main className="container w-full p-8 overflow-y-auto">
       <h1 className="text-2xl font-bold my-4">Tedana Installation Guide </h1>
@@ -36,28 +15,18 @@ function Installation({}: Props) {
         </p>
         <p className="mb-4">open a terminal and run:</p>
 
-        <div className="mockup-code my-4 relative">
-          <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-            Bash
-          </div>
-          <pre data-prefix="$">
-            <code ref={codeRef}>python --version</code>
-          </pre>
-          <button
-            onClick={handleCopy}
-            className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-              copied ? "text-success" : ""
-            }`}
-            aria-label="Copy to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        </div>
+        <CodeSnippet code="python3 --version" language="Bash" />
 
         <p className="mt-4">
-          If you need to install or update Python, visit the official Python
-          website and download the appropriate version for your operating
-          system.
+          If you need to install or update Python,{" "}
+          <a
+            href="https://www.python.org/"
+            target="_blank"
+            className="text-primary"
+          >
+            visit the official Python website
+          </a>{" "}
+          and download the appropriate version for your operating system.
         </p>
       </section>
 
@@ -70,63 +39,15 @@ function Installation({}: Props) {
           installation isolated from other Python projects.
         </p>
 
-        <div className="mockup-code my-4 relative">
-          <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-            Bash
-          </div>
-          <pre data-prefix="$">
-            <code ref={codeRef}>python -m venv tedana-env</code>
-          </pre>
-          <button
-            onClick={handleCopy}
-            className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-              copied ? "text-success" : ""
-            }`}
-            aria-label="Copy to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        </div>
+        <CodeSnippet code="python3 -m venv tedana-env" language="Bash" />
 
         <p className="mt-8">Activate the virtual environment:</p>
         <div className="pl-8">
           <p>On MacOS/Linux</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Bash
-            </div>
-            <pre data-prefix="$">
-              <code ref={codeRef}>source tedana-env/bin/activate</code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="source tedana-env/bin/activate" language="Bash" />
 
           <p>On Windows</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Bash
-            </div>
-            <pre data-prefix="$">
-              <code ref={codeRef}>tedana-env\Scripts\activate</code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="tedana-env\Scripts\activate" language="Bash" />
         </div>
       </section>
 
@@ -134,47 +55,16 @@ function Installation({}: Props) {
         <h2 className="text-xl font-bold mb-4">3. Install Required Packages</h2>
         <p className="mb-4">Install the necessary dependencies using pip:</p>
 
-        <div className="mockup-code my-4 relative">
-          <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-            Bash
-          </div>
-          <pre data-prefix="$">
-            <code ref={codeRef}>
-              pip install nilearn nibabel numpy scikit-learn scipy mapca
-            </code>
-          </pre>
-          <button
-            onClick={handleCopy}
-            className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-              copied ? "text-success" : ""
-            }`}
-            aria-label="Copy to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        </div>
+        <CodeSnippet
+          code="pip install nilearn nibabel numpy scikit-learn scipy mapca"
+          language="Bash"
+        />
       </section>
 
       <section>
         <h2 className="text-xl font-bold mb-4">4. Install Tedana</h2>
 
-        <div className="mockup-code my-4 relative">
-          <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-            Bash
-          </div>
-          <pre data-prefix="$">
-            <code ref={codeRef}>pip install tedana</code>
-          </pre>
-          <button
-            onClick={handleCopy}
-            className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-              copied ? "text-success" : ""
-            }`}
-            aria-label="Copy to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        </div>
+        <CodeSnippet code="pip install tedana" language="Bash" />
       </section>
 
       <section>
@@ -185,44 +75,10 @@ function Installation({}: Props) {
         </p>
         <div className="pl-8">
           <p>Open a Python interactive shell</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Bash
-            </div>
-            <pre data-prefix="$">
-              <code ref={codeRef}>python</code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="python" language="Bash" />
 
           <p>In the Python shell, try importing tedana</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Python
-            </div>
-            <pre data-prefix="~">
-              <code ref={codeRef}>
-                <span className="text-secondary">import</span> tedana
-              </code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="import tedana" language="Python" />
         </div>
 
         <p className="mt-8">
@@ -230,42 +86,10 @@ function Installation({}: Props) {
         </p>
         <div className="pl-8">
           <p>Exit the Python shell</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Python
-            </div>
-            <pre data-prefix="~">
-              <code ref={codeRef}>exit()</code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="exit()" language="Python" />
 
           <p>Check the command-line interface</p>
-          <div className="mockup-code my-4 relative">
-            <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-              Bash
-            </div>
-            <pre data-prefix="$">
-              <code ref={codeRef}>tedana --help</code>
-            </pre>
-            <button
-              onClick={handleCopy}
-              className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-                copied ? "text-success" : ""
-              }`}
-              aria-label="Copy to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
+          <CodeSnippet code="tedana --help" language="Bash" />
         </div>
         <p className="my-4">
           If you see the help message for tedana, the CLI is working correctly.
@@ -282,23 +106,7 @@ function Installation({}: Props) {
           environment:
         </p>
 
-        <div className="mockup-code my-4 relative">
-          <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
-            Bash
-          </div>
-          <pre data-prefix="$">
-            <code ref={codeRef}>deactivate</code>
-          </pre>
-          <button
-            onClick={handleCopy}
-            className={`absolute top-2 right-2 btn btn-ghost btn-xs ${
-              copied ? "text-success" : ""
-            }`}
-            aria-label="Copy to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        </div>
+        <CodeSnippet code="deactivate" language="Bash" />
       </section>
     </main>
   );

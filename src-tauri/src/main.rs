@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use dark_light::Mode;
+// use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::Manager;
@@ -10,8 +11,8 @@ use tauri::Manager;
 #[tauri::command]
 fn get_system_theme() -> String {
     match dark_light::detect() {
-        Mode::Dark => "dark".to_string(),
-        Mode::Light | Mode::Default => "light".to_string(),
+        Mode::Dark => "dim".to_string(),
+        Mode::Light | Mode::Default => "emerald".to_string(),
     }
 }
 

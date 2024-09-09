@@ -5,41 +5,50 @@ function Home({}: Props) {
   return (
     <>
       <h1 className="text-3xl font-bold">
-        Welcome to FMRIPrep Graphical User Interface
+        Welcome to the Graphical User Interface for Tedana
       </h1>
       <div className="mt-10 max-w-lg text-center">
         <p className="mb-4">
-          TE-dependent analysis (tedana)is a Python library for denoising
-          multi-echo functional magnetic resonance imaging (fMRI) data. tedana
-          originally came about as a part of the ME-ICA pipeline, although it
-          has since diverged. An important distinction is that while the ME-ICA
-          pipeline originally performed both pre-processing and TE-dependent
-          analysis of multi-echo fMRI data, tedana now assumes that you’re
-          working with data which has been previously preprocessed.
+          <span className="bg-primary text-primary-content px-1">TE</span>-
+          <span className="bg-secondary text-secondary-content ">d</span>
+          ependent <span className="bg-accent text-accent-content">ana</span>
+          lysis (<span className="bg-primary text-primary-content">te</span>
+          <span className="bg-secondary text-secondary-content ">d</span>
+          <span className="bg-accent text-accent-content">ana</span>)is a Python
+          library for denoising multi-echo functional magnetic resonance imaging
+          (fMRI) data.
         </p>
-        <div className="flex gap-4 justify-center items-center">
+
+        <h2 className="text-xl font-bold mb-4"> How to get started</h2>
+        <div className="flex flex-col">
           <Link
             to="/Installation"
             className="btn btn-primary"
             aria-label="Installation Guide"
           >
-            Installation
+            Setup your Tedana Environment
           </Link>
+          <div className="divider">OR</div>
           <Link
             to="/setup"
             className="btn btn-secondary"
             aria-label="Get Started"
           >
-            Getting Started
+            Setup I/O Directories
           </Link>
-          <a
-            href="https://tedana.readthedocs.io/en/stable/index.html"
-            target="_blank"
-            className=" btn btn-outline btn-primary"
-            aria-label="View Documentation"
-          >
-            Documentation
-          </a>
+        </div>
+        <div className="flex gap-4 justify-center items-center mt-4">
+          <p>
+            For more information, please check out the official{" "}
+            <a
+              href="https://tedana.readthedocs.io/en/stable/index.html"
+              target="_blank"
+              className="text-primary"
+              aria-label="View Documentation"
+            >
+              Tedana Documentation
+            </a>
+          </p>
         </div>
       </div>
     </>
