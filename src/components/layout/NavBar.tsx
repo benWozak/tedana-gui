@@ -5,7 +5,7 @@ type Props = {};
 
 function NavBar({}: Props) {
   return (
-    <nav className="navbar bg-base-100 sticky top-0">
+    <nav className="navbar bg-base-100 sticky top-0 z-40">
       <div className="flex-1">
         <Link to="/" className="btn btn-ghost text-xl">
           FMRIPrep

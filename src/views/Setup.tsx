@@ -17,7 +17,7 @@ function Setup({}: Props) {
   };
 
   return (
-    <div className="w-full p-4 flex flex-col justify-center items-center">
+    <main className="w-full p-4 flex flex-col justify-center items-center">
       <div className="card bg-base-300 w-5/6">
         <div className="card-body">
           <div className="card-title">
@@ -54,7 +54,7 @@ function Setup({}: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

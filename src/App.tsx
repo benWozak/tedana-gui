@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 
 const Home = lazy(() => import("./views/Home"));
+const Installation = lazy(() => import("./views/Installation"));
 const Setup = lazy(() => import("./views/Setup"));
 
 // TODO: update Loading fallback
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="installation" element={<Installation />} />
             <Route path="setup" element={<Setup />} />
           </Route>
         </Routes>

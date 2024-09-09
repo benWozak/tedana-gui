@@ -9,20 +9,31 @@ function Home({}: Props) {
       </h1>
       <div className="mt-10 max-w-lg text-center">
         <p className="mb-4">
-          fMRIPrep is a NiPreps (NeuroImaging PREProcessing toolS) application
-          (www.nipreps.org) for the preprocessing of task-based and
-          resting-state functional MRI (fMRI).
+          TE-dependent analysis (tedana)is a Python library for denoising
+          multi-echo functional magnetic resonance imaging (fMRI) data. tedana
+          originally came about as a part of the ME-ICA pipeline, although it
+          has since diverged. An important distinction is that while the ME-ICA
+          pipeline originally performed both pre-processing and TE-dependent
+          analysis of multi-echo fMRI data, tedana now assumes that you’re
+          working with data which has been previously preprocessed.
         </p>
         <div className="flex gap-4 justify-center items-center">
           <Link
-            to="/setup"
+            to="/Installation"
             className="btn btn-primary"
+            aria-label="Installation Guide"
+          >
+            Installation
+          </Link>
+          <Link
+            to="/setup"
+            className="btn btn-secondary"
             aria-label="Get Started"
           >
-            Get Started
+            Getting Started
           </Link>
           <a
-            href="https://fmriprep.org/en/stable/index.html"
+            href="https://tedana.readthedocs.io/en/stable/index.html"
             target="_blank"
             className=" btn btn-outline btn-primary"
             aria-label="View Documentation"
