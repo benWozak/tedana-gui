@@ -29,11 +29,11 @@ function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
   };
 
   return (
-    <div className="form-control w-full max-w-md">
+    <div className="form-control w-full max-w-xl">
       <label className="label">
         <span className="label-text">{label}</span>
       </label>
-      <div className="input-group flex flex-col gap-2">
+      <div className="input-group flex gap-2">
         <input
           type="text"
           placeholder="Select directory"

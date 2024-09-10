@@ -4,16 +4,11 @@ import { FolderSync } from "lucide-react";
 
 type Props = {};
 
-function InputOutputDir({}: Props) {
+function ProjectDir({}: Props) {
   const [inputDir, setInputDir] = useState("");
-  const [outputDir, setOutputDir] = useState("");
 
   const handleInputDirSelect = (path: string) => {
     setInputDir(path);
-  };
-
-  const handleOutputDirSelect = (path: string) => {
-    setOutputDir(path);
   };
 
   return (
@@ -28,21 +23,11 @@ function InputOutputDir({}: Props) {
             label="Input Directory"
             onSelect={handleInputDirSelect}
           />
-          <div className="divider divider-horizontal">
-            <div className="rounded-xl">
-              <FolderSync />
-            </div>
-          </div>
-          <DirectorySelector
-            label="Output Directory"
-            onSelect={handleOutputDirSelect}
-          />
         </div>
         <div className="flex justify-between mt-8">
           <div>
             <h2 className="text-xl font-bold mb-4">Confirm Selection</h2>
-            <p>Selected Input Directory: {inputDir}</p>
-            <p>Selected Output Directory: {outputDir}</p>
+            <p>Selected Project Directory: {inputDir}</p>
           </div>
           <div className="mt-8 flex gap-2">
             <button className="btn btn-outlined btn-secondary btn-disabled">
@@ -56,4 +41,4 @@ function InputOutputDir({}: Props) {
   );
 }
 
-export default InputOutputDir;
+export default ProjectDir;

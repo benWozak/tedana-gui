@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import CodeSnippet from "../elements/CodeSnippet";
+import { CircleHelp } from "lucide-react";
 
 type Props = {};
 
@@ -59,6 +60,8 @@ function PythonPathDir({}: Props) {
     }
   };
 
+  // emerald: #66cc8a
+  // dim: #66cc8a
   return (
     <div className="card bg-base-300">
       <div className="card-body">
@@ -82,8 +85,9 @@ function PythonPathDir({}: Props) {
 
           <div className="collapse bg-base-200 my-4 max-w-2xl">
             <input type="checkbox" />
-            <div className="collapse-title text-lg font-medium">
-              Not sure where to find your Python environment path?
+            <div className="collapse-title text-lg font-medium flex">
+              <CircleHelp color="#66cc8a" className="mr-2" /> Not sure where to
+              find your Python environment path?
             </div>
             <div className="collapse-content">
               To find the path to your virtual environment, you can run this
