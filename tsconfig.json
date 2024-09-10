@@ -20,6 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "declare.d.ts"],
+  "include": ["src", "declare.d.ts", "src/components/layout/LoadingAnimation.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

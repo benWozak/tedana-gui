@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {},
+    container: {
+      center: true,
+    },
   },
   plugins: [
     daisyui,
