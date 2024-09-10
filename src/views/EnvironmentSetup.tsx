@@ -1,9 +1,9 @@
-import ProjectDir from "../components/setup/ProjectDir";
-import PythonPathDir from "../components/setup/PythonPathDir";
+import ProjectDir from "../components/environmentSetup/ProjectDir";
+import PythonPathDir from "../components/environmentSetup/PythonPathDir";
 
 type Props = {};
 
-function Setup({}: Props) {
+function EnvironmentSetup({}: Props) {
   return (
     <div className="w-full p-10 container mx-auto">
       <div>
@@ -16,4 +16,4 @@ function Setup({}: Props) {
   );
 }
 
-export default Setup;
+export default EnvironmentSetup;

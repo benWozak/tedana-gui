@@ -1,4 +1,4 @@
-import CodeSnippet from "../components/elements/CodeSnippet";
+import CodeSnippet from "../components/ui/CodeSnippet";
 
 type Props = {};
 

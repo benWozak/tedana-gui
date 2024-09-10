@@ -7,7 +7,7 @@ type CodeSnippetProps = {
   language: string;
 };
 
-const CodeSnippet: React.FC<CodeSnippetProps> = ({ code, language }) => {
+export const CodeSnippet: React.FC<CodeSnippetProps> = ({ code, language }) => {
   const [copied, setCopied] = useState(false);
   const [_, copy] = useCopyToClipboard();
   const codeRef = useRef<HTMLElement>(null);
@@ -47,5 +47,3 @@ const CodeSnippet: React.FC<CodeSnippetProps> = ({ code, language }) => {
     </div>
   );
 };
-
-export default CodeSnippet;

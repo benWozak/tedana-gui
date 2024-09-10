@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import CodeSnippet from "../elements/CodeSnippet";
 import { CircleHelp } from "lucide-react";
+import { CodeSnippet, Input } from "../ui";
 
 type Props = {};
 
@@ -60,8 +60,6 @@ function PythonPathDir({}: Props) {
     }
   };
 
-  // emerald: #66cc8a
-  // dim: #66cc8a
   return (
     <div className="card bg-base-300">
       <div className="card-body">
@@ -71,12 +69,12 @@ function PythonPathDir({}: Props) {
           </h1>
         </div>
         <div>
-          <input
+          <Input
             type="text"
             value={pythonPath}
             onChange={handlePathChange}
             placeholder="/path/to/your/virtualenv/bin/python"
-            className="input input-bordered w-full max-w-md"
+            className="max-w-lg"
           />
           <button onClick={savePath} className="btn btn-primary ml-2">
             Save and Check

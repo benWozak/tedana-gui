@@ -1,48 +1,11 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/tauri";
 
-type Props = {};
+type Props = {
+  tedanaStatus: string;
+  isConnected: boolean;
+};
 
-function Home({}: Props) {
-  const [tedanaStatus, setTedanaStatus] = useState<string>("Checking...");
-  const [isChecking, setIsChecking] = useState<boolean>(true);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-
-  const checkTedanaConnection = async () => {
-    setIsChecking(true);
-    setTedanaStatus("Checking...");
-    try {
-      const pythonPath = localStorage.getItem("pythonPath");
-      if (!pythonPath) {
-        setTedanaStatus(
-          "Python path not set. Please go to Setup to configure."
-        );
-        setIsConnected(false);
-        return;
-      }
-
-      const result = await invoke("run_tedana", {
-        pythonPath: pythonPath,
-        args: ["--version"],
-      });
-      setTedanaStatus("Connected: " + result);
-      setIsConnected(true);
-    } catch (error) {
-      console.error("Error checking tedana:", error);
-      setTedanaStatus(
-        "Not connected. Please check your installation and Python path."
-      );
-      setIsConnected(false);
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  useEffect(() => {
-    checkTedanaConnection();
-  }, []);
-
+function Home({ tedanaStatus, isConnected }: Props) {
   return (
     <div className="w-full px-4 container mx-auto text-center">
       <h1 className="text-3xl font-bold mb-6">
@@ -56,14 +19,14 @@ function Home({}: Props) {
             {tedanaStatus}
           </span>
         </p>
-        {!isChecking && !isConnected && (
+        {/* {!isChecking && !isConnected && (
           <button
             onClick={checkTedanaConnection}
             className="btn btn-sm btn-outline"
           >
             Retry Connection
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="mt-10 flex flex-col justify-center items-center">
@@ -76,7 +39,7 @@ function Home({}: Props) {
         <div className="flex flex-col gap-4 w-full max-w-md">
           {isConnected ? (
             <Link
-              to="/setup"
+              to="/process"
               className="btn btn-primary"
               aria-label="Get Started"
             >
@@ -93,7 +56,7 @@ function Home({}: Props) {
               </Link>
               <div className="divider">OR</div>
               <Link
-                to="/setup"
+                to="/environment"
                 className="btn btn-secondary"
                 aria-label="Setup Tedana"
               >

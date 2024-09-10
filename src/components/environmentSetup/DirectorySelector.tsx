@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { open } from "@tauri-apps/api/dialog";
 import { homeDir } from "@tauri-apps/api/path";
+import { Input } from "../ui";
 
 interface DirectorySelectorProps {
   label: string;
@@ -34,10 +35,9 @@ function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
         <span className="label-text">{label}</span>
       </label>
       <div className="input-group flex gap-2">
-        <input
+        <Input
           type="text"
           placeholder="Select directory"
-          className="input input-bordered w-full"
           value={selectedPath}
           readOnly
         />
