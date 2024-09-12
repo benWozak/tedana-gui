@@ -1006,6 +1006,7 @@ name = "fmriprep-gui"
 version = "0.1.0"
 dependencies = [
  "dark-light",
+ "regex",
  "serde",
  "serde_json",
  "tauri",

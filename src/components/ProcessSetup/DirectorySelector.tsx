@@ -30,7 +30,7 @@ function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
   };
 
   return (
-    <div className="form-control w-full max-w-xl">
+    <div className="form-control w-full max-w-3xl">
       <label className="label">
         <span className="label-text">{label}</span>
       </label>

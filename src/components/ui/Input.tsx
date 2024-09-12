@@ -1,7 +1,8 @@
 type Props = {
+  name?: string;
   type?: string;
   placeholder?: string;
-  value: string;
+  value?: string;
   readOnly?: boolean;
   multiple?: boolean;
   className?: string;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function Input({
+  name,
   type,
   placeholder,
   value,
@@ -18,6 +20,7 @@ export function Input({
 }: Props) {
   return (
     <input
+      name={name}
       type={type ? type : "text"}
       placeholder={placeholder ? placeholder : ""}
       className={`input input-bordered w-full ${className ? className : ""}`}

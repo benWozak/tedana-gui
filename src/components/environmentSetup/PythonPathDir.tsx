@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { CircleHelp } from "lucide-react";
-import { CodeSnippet, Input } from "../ui";
+import { CodeSnippet, Input, InfoBlock } from "../ui";
 
 type Props = {};
 
@@ -80,8 +79,19 @@ function PythonPathDir({}: Props) {
             Save and Check
           </button>
           <p>Tedana Status: {tedanaStatus}</p>
-
-          <div className="collapse bg-base-200 my-4 max-w-2xl">
+          <InfoBlock
+            title="Not sure where to find your Python environment path?"
+            content={
+              <>
+                To find the path to your virtual environment, you can run this
+                command in your terminal:
+                <CodeSnippet code="which python" language="bash" />
+                This will give you the path to the Python executable in your
+                activated virtual environment.
+              </>
+            }
+          />
+          {/* <div className="collapse bg-base-200 my-4 max-w-2xl">
             <input type="checkbox" />
             <div className="collapse-title text-lg font-medium flex">
               <CircleHelp color="#66cc8a" className="mr-2" /> Not sure where to
@@ -94,7 +104,7 @@ function PythonPathDir({}: Props) {
               This will give you the path to the Python executable in your
               activated virtual environment.
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
