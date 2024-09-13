@@ -2,13 +2,15 @@ import { useState } from "react";
 import DirectorySelector from "./DirectorySelector";
 import { InfoBlock, Alert } from "../ui";
 import { invoke } from "@tauri-apps/api/tauri";
+import { BoldMetadata } from "../../util/types";
 
 type Props = {
-  onSuccessCallback: () => void;
+  onSuccessCallback: (result: BoldMetadata[], path: string) => void;
+  onErrorCallback?: (error: string) => void;
 };
 
 function ProjectDir({ onSuccessCallback }: Props) {
-  const [inputDir, setInputDir] = useState("");
+  // const [inputDir, setInputDir] = useState("");
   const [message, setMessage] = useState<{
     type: "info" | "success" | "warning" | "error";
     content: string;
@@ -19,12 +21,10 @@ function ProjectDir({ onSuccessCallback }: Props) {
       const result: string = await invoke("validate_bids_directory", {
         path: directoryPath,
       });
-      console.log(result);
       setMessage({
         type: "success",
         content: result,
       });
-      onSuccessCallback();
       extractBoldMetadata(directoryPath);
     } catch (error) {
       console.error(error);
@@ -38,20 +38,42 @@ function ProjectDir({ onSuccessCallback }: Props) {
 
   const extractBoldMetadata = async (directoryPath: string) => {
     try {
-      const result = await invoke("extract_bold_metadata", {
+      const result: BoldMetadata[] = await invoke("extract_bold_metadata", {
         path: directoryPath,
       });
-      console.log(result);
-      // Handle the extracted metadata
+
+      if (result.length === 0) {
+        setMessage({
+          type: "error",
+          content: "No BOLD metadata found in the specified directory.",
+        });
+      } else {
+        onSuccessCallback(result, directoryPath);
+      }
     } catch (error) {
-      console.error(error);
-      // Handle any errors
+      console.error("Error in extractBoldMetadata:", error);
+
+      if (typeof error === "string") {
+        setMessage({
+          type: "error",
+          content: error,
+        });
+      } else if (error instanceof Error) {
+        setMessage({
+          type: "error",
+          content: error.message,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          content: "An unknown error occurred while extracting BOLD metadata.",
+        });
+      }
     }
   };
 
   const handleInputDirSelect = (path: string) => {
-    setInputDir(path);
-
+    // setInputDir(path);
     validateBIDS(path);
   };
 

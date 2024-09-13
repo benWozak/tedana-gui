@@ -1,12 +1,15 @@
 import { useState } from "react";
 import ProjectDir from "../components/ProcessSetup/ProjectDir";
 import Config from "../components/ProcessSetup/Config";
+import { BoldMetadata } from "../util/types";
 
 type Props = {};
 
 function ProcessSetup({}: Props) {
   const [activeStep, setActiveStep] = useState(0);
   const [validDirectory, setValidDirectory] = useState(false);
+  const [directory, setDirectory] = useState<string | null>();
+  const [metadata, setMetadata] = useState<BoldMetadata[]>();
 
   const steps = [
     "Working Directory",
@@ -18,9 +21,18 @@ function ProcessSetup({}: Props) {
   function getStep(step: number) {
     switch (step) {
       case 0:
-        return <ProjectDir onSuccessCallback={() => setValidDirectory(true)} />;
+        return (
+          <ProjectDir
+            onSuccessCallback={(data: BoldMetadata[], path: string) => {
+              setValidDirectory(true);
+              setDirectory(path);
+              setMetadata(data);
+            }}
+            // onErrorCallback={(error: string) => }
+          />
+        );
       case 1:
-        return <Config />;
+        return <Config metadata={metadata} />;
       case 2:
       case 3:
       default:
@@ -32,6 +44,7 @@ function ProcessSetup({}: Props) {
       case 0:
         return validDirectory ? "" : "btn-disabled";
       case 1:
+        return !!directory && !!metadata ? "" : "btn-disabled";
       case 2:
       case 3:
       default:
