@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Table } from "../ui";
+import { Table, Input, Select, Toggle } from "../ui";
 import { BoldMetadata, TedanaConfig } from "../../util/types";
-import { formatMilliseconds } from "../../util/format";
-import { CircleCheck, CircleX } from "lucide-react";
+import CommandDisplay from "./CommandDisplay";
 
 import EchoTimes from "./EchoTimes";
+import Metadata from "./Metadata";
 
 type Props = {
   metadata: BoldMetadata[] | undefined;
@@ -14,22 +14,22 @@ function Config({ metadata }: Props) {
   const [config, setConfig] = useState<TedanaConfig>({
     dataFiles: [],
     echoTimes: [],
-    outDir: ".",
+    outDir: "",
     mask: "",
     prefix: "",
-    convention: "bids",
-    maskType: ["dropout"],
-    fitType: "loglin",
-    combMode: "t2s",
-    tedpca: "aic",
-    tree: "tedana_orig",
+    convention: null,
+    maskType: "",
+    fitType: null,
+    combMode: null,
+    tedpca: null,
+    tree: null,
     seed: 42,
     maxit: 500,
     maxrestart: 10,
     tedort: false,
-    gscontrol: [],
+    gscontrol: "",
     noReports: false,
-    pngCmap: "coolwarm",
+    pngCmap: null,
     verbose: false,
     lowmem: false,
     nThreads: 1,
@@ -54,47 +54,16 @@ function Config({ metadata }: Props) {
     }
   }, [metadata]);
 
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  // ) => {
-  //   const { name, value } = e.target;
-  //   setConfig((prev) => ({ ...prev, [name]: value }));
-  // };
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setConfig((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const generateCommand = () => {
-    let command = "tedana";
-
-    // Add required arguments
-    command += ` -d ${config.dataFiles.join(" ")}`;
-    command += ` -e ${config.echoTimes}`;
-
-    // Add optional arguments
-    if (config.outDir !== ".") command += ` --out-dir ${config.outDir}`;
-    if (config.mask) command += ` --mask ${config.mask}`;
-    if (config.prefix) command += ` --prefix ${config.prefix}`;
-    if (config.convention) command += ` --convention ${config.convention}`;
-    if (config.maskType) command += ` --masktype ${config.maskType.join(" ")}`;
-    if (config.fitType) command += ` --fittype ${config.fitType}`;
-    if (config.combMode) command += ` --combmode ${config.combMode}`;
-    if (config.tedpca) command += ` --tedpca ${config.tedpca}`;
-    if (config.tree) command += ` --tree ${config.tree}`;
-    if (config.seed) command += ` --seed ${config.seed}`;
-    if (config.maxit) command += ` --maxit ${config.maxit}`;
-    if (config.maxrestart) command += ` --maxrestart ${config.maxrestart}`;
-    if (config.tedort) command += " --tedort";
-    if (config.gscontrol.length > 0)
-      command += ` --gscontrol ${config.gscontrol.join(" ")}`;
-    if (config.noReports) command += " --no-reports";
-    command += ` --png-cmap ${config.pngCmap}`;
-    if (config.verbose) command += " --verbose";
-    if (config.lowmem) command += " --lowmem";
-    command += ` --n-threads ${config.nThreads}`;
-    if (config.debug) command += " --debug";
-    if (config.t2smap) command += ` --t2smap ${config.t2smap}`;
-    if (config.mix) command += ` --mix ${config.mix}`;
-    if (config.overwrite) command += " --overwrite";
-
-    return command;
+  const handleToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setConfig((prev) => ({ ...prev, [name]: checked }));
   };
 
   if (!metadata) {
@@ -104,88 +73,212 @@ function Config({ metadata }: Props) {
   return (
     <div className="w-full p-10 container mx-auto">
       <h1 className="text-2xl font-bold mb-4">Tedana Configuration</h1>
-
       <div className="mb-4">
         <Table columns={["Data Files"]} data={config.dataFiles} />
       </div>
-
       <div className="mb-4">
         <label className="block mb-2">Echo Times</label>
         <div className="flex">
           <EchoTimes metadata={metadata} />
         </div>
       </div>
-
       <div className="mb-4">
         <label className="block mb-2"> Metadata</label>
-        <div className="flex gap-4">
-          <div className="stats shadow">
-            <div className="stat">
-              <div className="stat-title">Start Time</div>
-              <div className="stat-value">
-                {formatMilliseconds(metadata[0]?.start_time)}
-              </div>
-              <div className="stat-desc">milliseconds</div>
-            </div>
-          </div>
-
-          <div className="stats shadow">
-            <div className="stat">
-              <div className="stat-title">Delay</div>
-              <div className="stat-value">
-                {formatMilliseconds(metadata[0]?.delay_time)}
-              </div>
-              <div className="stat-desc">milliseconds</div>
-            </div>
-          </div>
-
-          <div className="stats shadow">
-            <div className="stat">
-              <div className="stat-title">Repetition Time</div>
-              <div className="stat-value">{metadata[0]?.repetition_time}</div>
-              <div className="stat-desc">milliseconds</div>
-            </div>
-          </div>
-
-          <div className="stats shadow">
-            <div className="stat">
-              <div className="stat-title">Slice Time Correction</div>
-              <div className="stat-value">
-                {metadata[0]?.slice_timing_corrected ? (
-                  <CircleCheck color="green" />
-                ) : (
-                  <CircleX color="red" />
-                )}
-              </div>
-              <div className="stat-desc">milliseconds</div>
-            </div>
-          </div>
-
-          <div className="stats shadow">
-            <div className="stat">
-              <div className="stat-title">Skull Stripped</div>
-              <div className="stat-value">
-                {metadata[0]?.skull_stripped ? (
-                  <CircleCheck color="green" />
-                ) : (
-                  <CircleX color="red" />
-                )}
-              </div>
-              <div className="stat-desc">milliseconds</div>
-            </div>
-          </div>
+        <Metadata metadata={metadata} />
+      </div>
+      <div className="mb-4">
+        <label className="block">Output directory</label>
+        <Input
+          placeholder="path/to/output"
+          name="outDir"
+          value={config.outDir}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block">Mask</label>
+        <Input
+          placeholder="path/to/mask-file"
+          name="mask"
+          value={config.mask}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="flex gap-4">
+        <div className="mb-4">
+          <label className="block">Prefix</label>
+          <Input
+            placeholder=""
+            name="prefix"
+            value={config.mask}
+            onChange={(e) => handleInputChange(e)}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block">Convention</label>
+          <Input
+            placeholder="path/to/mask-file"
+            name="prefix"
+            // value={config.convention}
+            value="bids"
+            // onChange={(e) => handleInputChange(e)}
+            readOnly
+            disabled
+          />
+        </div>
+      </div>
+      <div className="mb-4">
+        <label className="block">Mask Type</label>
+        <Select
+          placeholder="Default (dropout)"
+          options={["dropout", "decay", "none"]}
+          name="maskType"
+          value={config.maskType}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block">Fit Type</label>
+        <Select
+          placeholder="Default (loglin)"
+          options={["loglin", "curvefit"]}
+          name="fitType"
+          value={config.fitType}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block">TEDPCA</label>
+        <Select
+          placeholder="Default (aic)"
+          options={["aic", "mdl", "kic"]}
+          name="tedpca"
+          value={config.tedpca}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block">Decision Tree</label>
+        <Select
+          placeholder="Default (tedana_orig)"
+          options={["tedana_orig", "meica", "minimal (not recommended)"]}
+          name="tree"
+          value={config.tree}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block">GS Control</label>
+        <Select
+          placeholder="Default (none)"
+          options={["mir", "gsr", ""]}
+          name="gscontrol"
+          value={config.gscontrol}
+          onChange={(e) => handleInputChange(e)}
+        />
+      </div>
+      <div className="flex gap-4">
+        <div className="mb-4">
+          <label className="block">Seed</label>
+          <Input
+            type="number"
+            name="seed"
+            value={config.seed || 42}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block">Max Iterations</label>
+          <Input
+            type="number"
+            name="maxit"
+            value={config.maxit || 500}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block">Max Restart</label>
+          <Input
+            type="number"
+            name="maxrestart"
+            value={config.maxrestart || 10}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block">Threads</label>
+          <Input
+            type="number"
+            name="nThreads"
+            value={config.nThreads || 1}
+            onChange={handleInputChange}
+          />
         </div>
       </div>
 
-      {/* <Button onClick={() => console.log(generateCommand())}>
-        Generate Command
-      </Button> */}
+      <div className="flex flex-col">
+        <Toggle
+          label={
+            "Orthogonalize rejected/accepted components prior to denoising."
+          }
+          name="tedort"
+          checked={config.tedort}
+          onChange={handleToggleChange}
+        />
+        <Toggle
+          label={"Creates a figures folder with static component maps"}
+          name="noReports"
+          checked={config.noReports}
+          onChange={handleToggleChange}
+        />
+        <Toggle
+          label={"Generate intermediate and additional files"}
+          name="verbose"
+          checked={config.verbose}
+          onChange={handleToggleChange}
+        />
+        <Toggle
+          label={
+            "low-memory processing, including the use of IncrementalPCA. (May increase workflow duration)"
+          }
+          name="lowmem"
+          checked={config.lowmem}
+          onChange={handleToggleChange}
+        />
+        <Toggle
+          label={"increase verbosity of terminal logs, and generate .tsv"}
+          name="debug"
+          checked={config.debug}
+          onChange={handleToggleChange}
+        />
+        <Toggle
+          label={"Force overwriting of files"}
+          name="overwrite"
+          checked={config.overwrite}
+          onChange={handleToggleChange}
+        />
+      </div>
+      {/*
+            --png-cmap
+            Colormap for figures
 
+            Default: “coolwarm”
+
+            --t2smap
+            Precalculated T2* map in the same space as the input data.
+
+            --mix
+            File containing mixing matrix. If not provided, ME-PCA & ME-ICA is done.
+      */}
       <div className="mt-4">
         <h2 className="text-xl font-bold mb-2">Generated Command:</h2>
-        <pre className="bg-gray-100 p-2 rounded text-wrap">
-          {generateCommand()}
-        </pre>
+        <div className="mockup-code">
+          <pre data-prefix="$">
+            <code>
+              <CommandDisplay config={config} />
+            </code>
+          </pre>
+        </div>
       </div>
     </div>
   );
