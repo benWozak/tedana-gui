@@ -8,9 +8,10 @@ import Metadata from "./Metadata";
 
 type Props = {
   metadata: BoldMetadata[] | undefined;
+  directory: string | undefined;
 };
 
-function Config({ metadata }: Props) {
+function Config({ metadata, directory }: Props) {
   const [config, setConfig] = useState<TedanaConfig>({
     dataFiles: [],
     echoTimes: [],
@@ -50,6 +51,7 @@ function Config({ metadata }: Props) {
         ...prevConfig,
         dataFiles: newDataFiles,
         echoTimes: newEchoTimes,
+        outDir: directory ? `${directory}/tedana` : "",
       }));
     }
   }, [metadata]);

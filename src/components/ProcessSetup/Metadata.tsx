@@ -14,9 +14,9 @@ function Metadata({ metadata }: Props) {
   return (
     <div className="flex gap-4">
       <div className="stats shadow">
-        <div className="stat min-w-44">
+        <div className="stat">
           <div className="stat-title">Start Time</div>
-          <div className="stat-value">
+          <div className="stat-value flex justify-center">
             {formatMilliseconds(metadata[0]?.start_time)}
           </div>
           <div className="stat-desc">milliseconds</div>
@@ -24,9 +24,9 @@ function Metadata({ metadata }: Props) {
       </div>
 
       <div className="stats shadow">
-        <div className="stat min-w-44">
+        <div className="stat">
           <div className="stat-title">Delay</div>
-          <div className="stat-value">
+          <div className="stat-value flex justify-center">
             {formatMilliseconds(metadata[0]?.delay_time)}
           </div>
           <div className="stat-desc">milliseconds</div>
@@ -34,15 +34,17 @@ function Metadata({ metadata }: Props) {
       </div>
 
       <div className="stats shadow">
-        <div className="stat min-w-44">
+        <div className="stat">
           <div className="stat-title">Repetition Time</div>
-          <div className="stat-value">{metadata[0]?.repetition_time}</div>
+          <div className="stat-value flex justify-center">
+            {metadata[0]?.repetition_time}
+          </div>
           <div className="stat-desc">milliseconds</div>
         </div>
       </div>
 
       <div className="stats shadow">
-        <div className="stat min-w-44">
+        <div className="stat">
           <div className="stat-title">Time Correction</div>
           <div className="stat-value flex justify-center">
             {metadata[0]?.slice_timing_corrected ? (
@@ -56,7 +58,7 @@ function Metadata({ metadata }: Props) {
       </div>
 
       <div className="stats shadow">
-        <div className="stat min-w-44">
+        <div className="stat">
           <div className="stat-title">Skull Stripped</div>
           <div className="stat-value flex justify-center">
             {metadata[0]?.skull_stripped ? (

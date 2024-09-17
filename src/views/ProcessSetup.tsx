@@ -8,7 +8,7 @@ import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
 function ProcessSetup() {
   const [activeStep, setActiveStep] = useState(0);
   const [validDirectory, setValidDirectory] = useState(false);
-  const [directory, setDirectory] = useState<string | null>();
+  const [directory, setDirectory] = useState<string>();
   const [metadata, setMetadata] = useState<BoldMetadata[]>();
 
   const { output, errors, loading, executeTedanaCommand } =
@@ -34,7 +34,7 @@ function ProcessSetup() {
           />
         );
       case 1:
-        return <Config metadata={metadata} />;
+        return <Config metadata={metadata} directory={directory} />;
       case 2:
         return (
           <RunScript
@@ -65,8 +65,8 @@ function ProcessSetup() {
 
   const handleNext = async () => {
     if (activeStep === 1) {
-      await executeTedanaCommand();
       setActiveStep(activeStep + 1);
+      await executeTedanaCommand();
     } else if (activeStep < steps.length - 1) {
       setActiveStep(activeStep + 1);
     }

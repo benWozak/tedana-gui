@@ -38,8 +38,7 @@ export const useTedanaExecution = () => {
         pythonPath: pythonPath,
         commandArgs: commandArgs,
       });
-
-      console.log("Tedana execution result:", result);
+      console.log('Tedana completed successfully:', result)
       return true;
     } catch (error) {
       console.error("Error executing tedana:", error);
