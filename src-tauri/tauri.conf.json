@@ -28,7 +28,13 @@
         "removeDir": true,
         "removeFile": true,
         "renameFile": true,
-        "exists": true
+        "exists": true,
+        "scope": [
+          "$HOME/**",
+          "$APPDATA/**",
+          "$DESKTOP/**",
+          "/Users/benwozak/Desktop/fmri-tedana-example-study/**"
+        ]
       },
       "dialog": {
         "all": true,
@@ -42,8 +48,8 @@
     "windows": [
       {
         "title": "fmriprep-gui",
-        "width": 800,
-        "height": 600
+        "width": 1200,
+        "height": 800
       }
     ],
     "security": {

@@ -5,8 +5,6 @@ type Props = {
 };
 
 function EchoTimes({ metadata }: Props) {
-  console.log(metadata);
-
   if (!metadata) {
     return;
   }
@@ -14,7 +12,7 @@ function EchoTimes({ metadata }: Props) {
   return (
     <div className="flex gap-4">
       {metadata.map((item: BoldMetadata, index: number) => (
-        <div className="stats shadow">
+        <div key={index} className="stats shadow">
           <div key={index} className="stat">
             <div className="stat-title">{`Echo ${item.echo_num}`}</div>
             <div className="stat-value">

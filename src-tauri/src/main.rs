@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use tauri::Manager;
+
 mod bids;
 mod tedana;
 mod theme;
@@ -21,8 +23,12 @@ fn check_tedana_installation(python_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn run_tedana(python_path: String, args: Vec<String>) -> Result<String, String> {
-    tedana::run_tedana(python_path, args)
+async fn run_tedana(
+    window: tauri::Window,
+    python_path: String,
+    command_args: String,
+) -> Result<String, String> {
+    tedana::run_tedana(window, python_path, command_args).await
 }
 
 #[tauri::command]
@@ -38,6 +44,11 @@ fn extract_bold_metadata(path: String) -> Result<Vec<bids::BoldMetadata>, String
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
+            #[cfg(debug_assertions)]
+            {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+            }
             let app_handle = app.handle();
             tauri::async_runtime::spawn(async move {
                 listen_system_theme_changes(app_handle).await;

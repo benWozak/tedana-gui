@@ -1,15 +1,18 @@
 import { useState } from "react";
 import ProjectDir from "../components/ProcessSetup/ProjectDir";
 import Config from "../components/ProcessSetup/Config";
+import RunScript from "../components/ProcessSetup/RunScript";
 import { BoldMetadata } from "../util/types";
+import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
 
-type Props = {};
-
-function ProcessSetup({}: Props) {
+function ProcessSetup() {
   const [activeStep, setActiveStep] = useState(0);
   const [validDirectory, setValidDirectory] = useState(false);
   const [directory, setDirectory] = useState<string | null>();
   const [metadata, setMetadata] = useState<BoldMetadata[]>();
+
+  const { output, errors, loading, executeTedanaCommand } =
+    useTedanaExecution();
 
   const steps = [
     "Working Directory",
@@ -28,14 +31,22 @@ function ProcessSetup({}: Props) {
               setDirectory(path);
               setMetadata(data);
             }}
-            // onErrorCallback={(error: string) => }
           />
         );
       case 1:
         return <Config metadata={metadata} />;
       case 2:
+        return (
+          <RunScript
+            output={output}
+            errors={errors}
+            loading={loading}
+            onExecute={executeTedanaCommand}
+          />
+        );
       case 3:
       default:
+        return null;
     }
   }
 
@@ -48,27 +59,21 @@ function ProcessSetup({}: Props) {
       case 2:
       case 3:
       default:
-        break;
+        return "";
     }
   }
 
+  const handleNext = async () => {
+    if (activeStep === 1) {
+      await executeTedanaCommand();
+      setActiveStep(activeStep + 1);
+    } else if (activeStep < steps.length - 1) {
+      setActiveStep(activeStep + 1);
+    }
+  };
+
   return (
     <div className="w-full p-10 container mx-auto">
-      <div className="overflow-x-auto flex justify-center">
-        <ul className="steps w-full min-w-144">
-          {steps.map((step: string, index: number) => (
-            <li
-              key={index}
-              data-content={
-                index < activeStep ? "✓" : index === activeStep ? "!" : "?"
-              }
-              className={`step ${index <= activeStep ? "step-primary" : ""}`}
-            >
-              {step}
-            </li>
-          ))}
-        </ul>
-      </div>
       <div className="mt-10">
         {getStep(activeStep)}
 
@@ -87,11 +92,8 @@ function ProcessSetup({}: Props) {
           </button>
           <button
             className={`btn btn-primary ${validateNextStep(activeStep)}`}
-            onClick={() => {
-              if (activeStep < steps.length - 1) {
-                setActiveStep(activeStep + 1);
-              }
-            }}
+            disabled={loading}
+            onClick={handleNext}
           >
             {activeStep === steps.length - 1 ? "Done" : "Next"}
           </button>
