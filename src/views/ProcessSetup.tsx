@@ -11,7 +11,8 @@ function ProcessSetup() {
   const [directory, setDirectory] = useState<string>();
   const [metadata, setMetadata] = useState<BoldMetadata[]>();
 
-  const { output, loading, executeTedanaCommand } = useTedanaExecution();
+  const { output, loading, executeTedanaCommand, killTedanaExecution } =
+    useTedanaExecution();
 
   const steps = [
     "Working Directory",
@@ -40,6 +41,7 @@ function ProcessSetup() {
             output={output}
             loading={loading}
             onExecute={executeTedanaCommand}
+            onKill={killTedanaExecution}
           />
         );
       case 3:

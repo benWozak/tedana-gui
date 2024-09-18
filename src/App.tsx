@@ -28,7 +28,7 @@ function App() {
           return;
         }
 
-        const result = await invoke("run_tedana", {
+        const result = await invoke("run_tedana_command", {
           pythonPath: pythonPath,
           commandArgs: "--version",
         });

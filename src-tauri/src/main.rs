@@ -23,12 +23,17 @@ fn check_tedana_installation(python_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-async fn run_tedana(
+async fn run_tedana_command(
     window: tauri::Window,
     python_path: String,
     command_args: String,
 ) -> Result<String, String> {
     tedana::run_tedana(window, python_path, command_args).await
+}
+
+#[tauri::command]
+async fn kill_tedana_command() -> Result<(), String> {
+    tedana::kill_tedana().await
 }
 
 #[tauri::command]
@@ -58,7 +63,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             get_system_theme,
             check_tedana_installation,
-            run_tedana,
+            run_tedana_command,
+            kill_tedana_command,
             validate_bids_directory,
             extract_bold_metadata
         ])

@@ -44,7 +44,7 @@ function PythonPathDir({}: Props) {
 
   const runTedana = async (path: string) => {
     try {
-      const result = await invoke("run_tedana", {
+      const result = await invoke("run_tedana_command", {
         pythonPath: path,
         args: ["--version"],
       });

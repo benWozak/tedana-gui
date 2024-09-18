@@ -9,9 +9,10 @@ type Props = {
   output: OutputLine[];
   loading: boolean;
   onExecute: () => Promise<boolean>;
+  onKill: () => Promise<void>;
 };
 
-function RunScript({ output, loading, onExecute }: Props) {
+function RunScript({ output, loading, onExecute, onKill }: Props) {
   const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,13 +28,18 @@ function RunScript({ output, loading, onExecute }: Props) {
   return (
     <div className="card bg-base-300">
       <div className="card-body">
-        <div className="card-title">
+        <div className="card-title flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold mb-4">
             {loading ? "Running Tedana" : "Tedana Execution Complete"}
             {loading && (
               <span className="loading loading-dots loading-md ml-2"></span>
             )}
           </h2>
+          {loading && (
+            <button onClick={onKill} className="btn btn-error btn-sm">
+              Kill Process
+            </button>
+          )}
         </div>
         <div className="mockup-code h-96 overflow-auto" ref={outputRef}>
           {output.map((line, index) => (

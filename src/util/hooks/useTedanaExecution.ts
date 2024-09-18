@@ -11,7 +11,7 @@ interface OutputLine {
 export function useTedanaExecution() {
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [loading, setLoading] = useState(false);
-  const { pythonPath, commandExecutable } = useStore(); 
+  const { pythonPath, commandExecutable } = useStore();
 
   const executeTedanaCommand = useCallback(async () => {
     setLoading(true);
@@ -26,7 +26,7 @@ export function useTedanaExecution() {
     });
 
     try {
-      const result = await invoke('run_tedana', {
+      const result = await invoke('run_tedana_command', {
         pythonPath,
         commandArgs: commandExecutable,
       });
@@ -44,5 +44,16 @@ export function useTedanaExecution() {
     }
   }, [pythonPath, commandExecutable]);
 
-  return { output, loading, executeTedanaCommand };
+  const killTedanaExecution = useCallback(async () => {
+    try {
+      await invoke('kill_tedana_command');
+      setOutput((prev) => [...prev, { content: 'Tedana execution was terminated by user', isError: false }]);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error killing Tedana process:', error);
+      setOutput((prev) => [...prev, { content: `Error killing Tedana process: ${error}`, isError: true }]);
+    }
+  }, []);
+
+  return { output, loading, executeTedanaCommand, killTedanaExecution };
 }

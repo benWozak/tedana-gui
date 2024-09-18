@@ -1,15 +1,15 @@
-use std::path::Path;
-
 use once_cell::sync::Lazy;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::time::Duration;
-// use tauri::Manager;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{mpsc, oneshot, Mutex};
 
 static IS_RUNNING: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+static CANCEL_TOKEN: Lazy<Mutex<Option<oneshot::Sender<()>>>> = Lazy::new(|| Mutex::new(None));
 
+#[tauri::command]
 pub async fn run_tedana(
     window: tauri::Window,
     python_path: String,
@@ -21,9 +21,13 @@ pub async fn run_tedana(
     }
     *is_running = true;
 
-    let result = run_tedana_internal(window, python_path, command_args).await;
+    let (cancel_tx, cancel_rx) = oneshot::channel();
+    *CANCEL_TOKEN.lock().await = Some(cancel_tx);
+
+    let result = run_tedana_internal(window, python_path, command_args, cancel_rx).await;
 
     *is_running = false;
+    *CANCEL_TOKEN.lock().await = None;
     result
 }
 
@@ -31,6 +35,7 @@ async fn run_tedana_internal(
     window: tauri::Window,
     python_path: String,
     command_args: String,
+    mut cancel_rx: oneshot::Receiver<()>,
 ) -> Result<String, String> {
     println!("Received python_path: {}", python_path);
     println!("Received command_args: {}", command_args);
@@ -112,6 +117,12 @@ async fn run_tedana_internal(
 
     loop {
         tokio::select! {
+            _ = &mut cancel_rx => {
+                // Cancel signal received
+                let mut child = child_arc.lock().await;
+                let _ = child.kill();
+                return Err("Tedana process was cancelled".to_string());
+            }
             _ = rx.recv() => {
                 // New output received, continue waiting
             }
@@ -135,6 +146,17 @@ async fn run_tedana_internal(
                 }
             }
         }
+    }
+}
+
+#[tauri::command]
+pub async fn kill_tedana() -> Result<(), String> {
+    let mut cancel_token = CANCEL_TOKEN.lock().await;
+    if let Some(tx) = cancel_token.take() {
+        let _ = tx.send(());
+        Ok(())
+    } else {
+        Err("No Tedana process is currently running".to_string())
     }
 }
 
