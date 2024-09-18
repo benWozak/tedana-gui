@@ -2,14 +2,14 @@ import { useState } from "react";
 import ProjectDir from "../components/ProcessSetup/ProjectDir";
 import Config from "../components/ProcessSetup/Config";
 import RunScript from "../components/ProcessSetup/RunScript";
-import { BoldMetadata } from "../util/types";
+import { BidsStructure } from "../util/types";
 import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
 
 function ProcessSetup() {
   const [activeStep, setActiveStep] = useState(0);
   const [validDirectory, setValidDirectory] = useState(false);
   const [directory, setDirectory] = useState<string>();
-  const [metadata, setMetadata] = useState<BoldMetadata[]>();
+  const [bidsStructure, setBidsStructure] = useState<BidsStructure>();
 
   const { output, loading, executeTedanaCommand, killTedanaExecution } =
     useTedanaExecution();
@@ -26,15 +26,15 @@ function ProcessSetup() {
       case 0:
         return (
           <ProjectDir
-            onSuccessCallback={(data: BoldMetadata[], path: string) => {
+            onSuccessCallback={(data: BidsStructure, path: string) => {
               setValidDirectory(true);
               setDirectory(path);
-              setMetadata(data);
+              setBidsStructure(data);
             }}
           />
         );
       case 1:
-        return <Config metadata={metadata} directory={directory} />;
+        return <Config bidsStructure={bidsStructure} directory={directory} />;
       case 2:
         return (
           <RunScript
@@ -55,8 +55,9 @@ function ProcessSetup() {
       case 0:
         return validDirectory ? "" : "btn-disabled";
       case 1:
-        return !!directory && !!metadata ? "" : "btn-disabled";
+        return !!directory && !!bidsStructure ? "" : "btn-disabled";
       case 2:
+        return loading ? "btn-disabled" : "";
       case 3:
       default:
         return "";
@@ -74,6 +75,17 @@ function ProcessSetup() {
 
   return (
     <div className="w-full p-10 container mx-auto">
+      <ul className="steps w-full mb-8">
+        {steps.map((step, index) => (
+          <li
+            key={step}
+            className={`step ${index <= activeStep ? "step-primary" : ""}`}
+          >
+            {step}
+          </li>
+        ))}
+      </ul>
+
       <div className="mt-10">
         {getStep(activeStep)}
 

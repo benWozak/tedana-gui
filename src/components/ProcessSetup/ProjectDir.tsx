@@ -2,10 +2,10 @@ import { useState } from "react";
 import DirectorySelector from "./DirectorySelector";
 import { InfoBlock, Alert } from "../ui";
 import { invoke } from "@tauri-apps/api/tauri";
-import { BoldMetadata } from "../../util/types";
+import { BidsStructure } from "../../util/types";
 
 type Props = {
-  onSuccessCallback: (result: BoldMetadata[], path: string) => void;
+  onSuccessCallback: (result: BidsStructure, path: string) => void;
   onErrorCallback?: (error: string) => void;
 };
 
@@ -25,7 +25,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
         type: "success",
         content: result,
       });
-      extractBoldMetadata(directoryPath);
+      extractBidsStructure(directoryPath);
     } catch (error) {
       console.error(error);
       setMessage({
@@ -36,22 +36,22 @@ function ProjectDir({ onSuccessCallback }: Props) {
     }
   };
 
-  const extractBoldMetadata = async (directoryPath: string) => {
+  const extractBidsStructure = async (directoryPath: string) => {
     try {
-      const result: BoldMetadata[] = await invoke("extract_bold_metadata", {
+      const result: BidsStructure = await invoke("extract_bids_structure", {
         path: directoryPath,
       });
 
-      if (result.length === 0) {
+      if (Object.keys(result.subjects).length === 0) {
         setMessage({
           type: "error",
-          content: "No BOLD metadata found in the specified directory.",
+          content: "No subjects found in the specified directory.",
         });
       } else {
         onSuccessCallback(result, directoryPath);
       }
     } catch (error) {
-      console.error("Error in extractBoldMetadata:", error);
+      console.error("Error in extractBidsStructure:", error);
 
       if (typeof error === "string") {
         setMessage({
@@ -66,14 +66,13 @@ function ProjectDir({ onSuccessCallback }: Props) {
       } else {
         setMessage({
           type: "error",
-          content: "An unknown error occurred while extracting BOLD metadata.",
+          content: "An unknown error occurred while extracting BIDS structure.",
         });
       }
     }
   };
 
   const handleInputDirSelect = (path: string) => {
-    // setInputDir(path);
     validateBIDS(path);
   };
 

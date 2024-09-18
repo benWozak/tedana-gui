@@ -1,19 +1,20 @@
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{mpsc, oneshot, Mutex};
+use tokio::sync::{mpsc, Mutex};
 
 static IS_RUNNING: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
-static CANCEL_TOKEN: Lazy<Mutex<Option<oneshot::Sender<()>>>> = Lazy::new(|| Mutex::new(None));
 
 #[tauri::command]
 pub async fn run_tedana(
     window: tauri::Window,
     python_path: String,
     command_args: String,
+    selected_subjects: Vec<String>,
+    selected_sessions: HashMap<String, Vec<String>>,
 ) -> Result<String, String> {
     let mut is_running = IS_RUNNING.lock().await;
     if *is_running {
@@ -21,21 +22,58 @@ pub async fn run_tedana(
     }
     *is_running = true;
 
-    let (cancel_tx, cancel_rx) = oneshot::channel();
-    *CANCEL_TOKEN.lock().await = Some(cancel_tx);
-
-    let result = run_tedana_internal(window, python_path, command_args, cancel_rx).await;
+    let result = run_tedana_for_subjects(
+        window,
+        python_path,
+        command_args,
+        selected_subjects,
+        selected_sessions,
+    )
+    .await;
 
     *is_running = false;
-    *CANCEL_TOKEN.lock().await = None;
     result
+}
+
+async fn run_tedana_for_subjects(
+    window: tauri::Window,
+    python_path: String,
+    command_args: String,
+    selected_subjects: Vec<String>,
+    selected_sessions: HashMap<String, Vec<String>>,
+) -> Result<String, String> {
+    let mut overall_output = String::new();
+
+    for subject in selected_subjects {
+        let sessions = selected_sessions
+            .get(&subject)
+            .ok_or_else(|| format!("No sessions found for subject {}", subject))?;
+        for session in sessions {
+            let subject_session_args = if session.is_empty() {
+                format!("{} --subject {}", command_args, subject)
+            } else {
+                format!(
+                    "{} --subject {} --session {}",
+                    command_args, subject, session
+                )
+            };
+            let result =
+                run_tedana_internal(window.clone(), python_path.clone(), subject_session_args)
+                    .await?;
+            overall_output.push_str(&format!(
+                "Subject: {}, Session: {}\n{}\n\n",
+                subject, session, result
+            ));
+        }
+    }
+
+    Ok(overall_output)
 }
 
 async fn run_tedana_internal(
     window: tauri::Window,
     python_path: String,
     command_args: String,
-    mut cancel_rx: oneshot::Receiver<()>,
 ) -> Result<String, String> {
     println!("Received python_path: {}", python_path);
     println!("Received command_args: {}", command_args);
@@ -117,12 +155,6 @@ async fn run_tedana_internal(
 
     loop {
         tokio::select! {
-            _ = &mut cancel_rx => {
-                // Cancel signal received
-                let mut child = child_arc.lock().await;
-                let _ = child.kill();
-                return Err("Tedana process was cancelled".to_string());
-            }
             _ = rx.recv() => {
                 // New output received, continue waiting
             }
@@ -151,9 +183,9 @@ async fn run_tedana_internal(
 
 #[tauri::command]
 pub async fn kill_tedana() -> Result<(), String> {
-    let mut cancel_token = CANCEL_TOKEN.lock().await;
-    if let Some(tx) = cancel_token.take() {
-        let _ = tx.send(());
+    let mut is_running = IS_RUNNING.lock().await;
+    if *is_running {
+        *is_running = false;
         Ok(())
     } else {
         Err("No Tedana process is currently running".to_string())
@@ -161,7 +193,11 @@ pub async fn kill_tedana() -> Result<(), String> {
 }
 
 pub fn check_tedana_installation(python_path: String) -> Result<String, String> {
-    let venv_dir = Path::new(&python_path).parent().unwrap().parent().unwrap();
+    let venv_dir = std::path::Path::new(&python_path)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
     let activate_script = venv_dir.join("bin").join("activate");
 
     let command_string = format!(

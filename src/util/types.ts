@@ -1,3 +1,9 @@
+export interface BidsStructure {
+  metadata: BoldMetadata[];
+  subjects: [string, string[]][]; 
+}
+
+
 export interface BoldMetadata {
   echo_num: number;
   delay_time: number;

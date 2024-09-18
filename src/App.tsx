@@ -28,9 +28,8 @@ function App() {
           return;
         }
 
-        const result = await invoke("run_tedana_command", {
+        const result = await invoke("check_tedana_installation", {
           pythonPath: pythonPath,
-          commandArgs: "--version",
         });
         setTedanaStatus("Connected: " + result);
         setIsConnected(true);

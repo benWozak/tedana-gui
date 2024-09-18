@@ -1,8 +1,31 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub struct EchoNum(u8);
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BoldMetadata {
+    pub echo_num: EchoNum,
+    pub delay_time: Option<f64>,
+    pub echo_time: Option<f64>,
+    pub repetition_time: Option<f64>,
+    pub skull_stripped: Option<bool>,
+    pub slice_timing_corrected: Option<bool>,
+    pub start_time: Option<f64>,
+    pub task_name: Option<String>,
+    pub nifti_file_path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BidsStructure {
+    pub metadata: Vec<BoldMetadata>,
+    pub subjects: Vec<(String, Vec<String>)>, // (subject_id, [session_ids])
+}
 
 pub fn validate_bids_directory(path: String) -> Result<String, String> {
     let dir_path = Path::new(&path);
@@ -107,33 +130,20 @@ fn validate_func_directory(dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub struct EchoNum(u8);
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BoldMetadata {
-    pub echo_num: EchoNum,
-    pub delay_time: Option<f64>,
-    pub echo_time: Option<f64>,
-    pub repetition_time: Option<f64>,
-    pub skull_stripped: Option<bool>,
-    pub slice_timing_corrected: Option<bool>,
-    pub start_time: Option<f64>,
-    pub task_name: Option<String>,
-    pub nifti_file_path: String,
-}
-
-pub fn extract_bold_metadata(dir_path: &str) -> Result<Vec<BoldMetadata>, String> {
-    println!("Starting BOLD metadata extraction from: {}", dir_path);
+pub fn extract_bids_structure(dir_path: &str) -> Result<BidsStructure, String> {
+    println!("Starting BIDS structure extraction from: {}", dir_path);
     let path = Path::new(dir_path);
-    let mut metadata_vec = Vec::new();
+    let mut structure = BidsStructure {
+        metadata: Vec::new(),
+        subjects: Vec::new(),
+    };
 
     if !path.is_dir() {
         return Err(format!("Provided path is not a directory: {}", dir_path));
     }
 
-    // Check for sub-* directories
-    let sub_dirs: Vec<_> = fs::read_dir(path)
+    // Extract subjects
+    let subject_dirs: Vec<_> = fs::read_dir(path)
         .map_err(|e| format!("Failed to read directory {}: {}", dir_path, e))?
         .filter_map(|entry| {
             let entry = entry.ok()?;
@@ -146,76 +156,66 @@ pub fn extract_bold_metadata(dir_path: &str) -> Result<Vec<BoldMetadata>, String
         })
         .collect();
 
-    println!("Found {} subject directories", sub_dirs.len());
+    println!("Found {} subject directories", subject_dirs.len());
 
-    if sub_dirs.is_empty() {
-        return Err(format!("No sub-* directories found in {}", dir_path));
-    }
+    let mut subjects: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
-    for sub_dir in sub_dirs {
-        println!(
-            "Processing subject directory: {:?}",
-            sub_dir.file_name().unwrap()
-        );
-        if let Err(e) = extract_from_subject_directory(&sub_dir, &mut metadata_vec) {
-            println!("Error processing subject directory: {}", e);
+    for subject_dir in subject_dirs {
+        let subject_id = subject_dir
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
+        let mut sessions = extract_sessions(&subject_dir)?;
+
+        // Sort sessions
+        sessions.sort();
+
+        if structure.metadata.is_empty() && !sessions.is_empty() {
+            let session_path = if sessions[0].is_empty() {
+                subject_dir.clone()
+            } else {
+                subject_dir.join(&sessions[0])
+            };
+            structure.metadata = extract_bold_metadata(&session_path)?;
         }
+
+        subjects.insert(subject_id, sessions);
     }
 
-    if metadata_vec.is_empty() {
-        Err("No matching BOLD JSON files found".to_string())
-    } else {
-        println!("Found {} BOLD metadata entries", metadata_vec.len());
-        metadata_vec.sort_by_key(|m| m.echo_num);
-        metadata_vec.dedup_by_key(|m| m.echo_num);
-        println!("After deduplication: {} unique entries", metadata_vec.len());
-        Ok(metadata_vec)
-    }
+    // Convert BTreeMap to Vec
+    structure.subjects = subjects.into_iter().collect();
+
+    Ok(structure)
 }
 
-fn extract_from_subject_directory(
-    sub_dir: &Path,
-    metadata_vec: &mut Vec<BoldMetadata>,
-) -> Result<(), String> {
-    let ses_dirs: Vec<_> = fs::read_dir(sub_dir)
-        .map_err(|e| format!("Failed to read subject directory {:?}: {}", sub_dir, e))?
+fn extract_sessions(subject_dir: &Path) -> Result<Vec<String>, String> {
+    let session_dirs: Vec<_> = fs::read_dir(subject_dir)
+        .map_err(|e| format!("Failed to read subject directory {:?}: {}", subject_dir, e))?
         .filter_map(|entry| {
             let entry = entry.ok()?;
             let file_name = entry.file_name().to_string_lossy().into_owned();
             if file_name.starts_with("ses-") && entry.file_type().ok()?.is_dir() {
-                Some(entry.path())
+                Some(file_name)
             } else {
                 None
             }
         })
         .collect();
 
-    if ses_dirs.is_empty() {
-        println!("No session directories found, checking for func directly in subject directory");
-        extract_from_func_directory(&sub_dir.join("func"), metadata_vec)?;
+    if session_dirs.is_empty() {
+        // If no session directories, assume a single unnamed session
+        Ok(vec!["".to_string()])
     } else {
-        println!("Found {} session directories", ses_dirs.len());
-        for ses_dir in ses_dirs {
-            println!(
-                "Processing session directory: {:?}",
-                ses_dir.file_name().unwrap()
-            );
-            extract_from_func_directory(&ses_dir.join("func"), metadata_vec)?;
-        }
+        Ok(session_dirs)
     }
-
-    Ok(())
 }
 
-fn extract_from_func_directory(
-    func_dir: &Path,
-    metadata_vec: &mut Vec<BoldMetadata>,
-) -> Result<(), String> {
+fn extract_bold_metadata(session_dir: &Path) -> Result<Vec<BoldMetadata>, String> {
+    println!("Extracting BOLD metadata from: {:?}", session_dir);
+    let func_dir = session_dir.join("func");
     if !func_dir.is_dir() {
-        return Err(format!(
-            "No 'func' directory found in {:?}",
-            func_dir.parent().unwrap()
-        ));
+        return Err(format!("No 'func' directory found in {:?}", session_dir));
     }
 
     let json_re = Regex::new(r"_echo-[1-5].*_bold\.json$").unwrap();
@@ -224,7 +224,7 @@ fn extract_from_func_directory(
     let mut json_files = Vec::new();
     let mut nifti_files = Vec::new();
 
-    for entry in fs::read_dir(func_dir)
+    for entry in fs::read_dir(&func_dir)
         .map_err(|e| format!("Failed to read func directory {:?}: {}", func_dir, e))?
     {
         let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
@@ -244,19 +244,22 @@ fn extract_from_func_directory(
         nifti_files.len()
     );
 
-    let mut matched_count = 0;
+    let mut metadata_vec = Vec::new();
     for json_path in json_files {
         if let Ok(mut metadata) = extract_file_metadata(&json_path) {
             if let Some(nifti_path) = find_matching_nifti(json_path.as_path(), &nifti_files) {
                 metadata.nifti_file_path = nifti_path.to_string_lossy().into_owned();
                 metadata_vec.push(metadata);
-                matched_count += 1;
             }
         }
     }
 
-    println!("Matched {} JSON-NIFTI pairs", matched_count);
-    Ok(())
+    println!("Extracted {} BOLD metadata entries", metadata_vec.len());
+    metadata_vec.sort_by_key(|m| m.echo_num);
+    metadata_vec.dedup_by_key(|m| m.echo_num);
+    println!("After deduplication: {} unique entries", metadata_vec.len());
+
+    Ok(metadata_vec)
 }
 
 fn extract_file_metadata(file_path: &PathBuf) -> Result<BoldMetadata, String> {

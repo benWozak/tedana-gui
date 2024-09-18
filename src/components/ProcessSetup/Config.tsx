@@ -1,17 +1,23 @@
 import { useState, useEffect } from "react";
 import { Table, Input, Select, Toggle } from "../ui";
-import { BoldMetadata, TedanaConfig } from "../../util/types";
+import { TedanaConfig, BidsStructure } from "../../util/types";
 import CommandDisplay from "./CommandDisplay";
 
 import EchoTimes from "./EchoTimes";
 import Metadata from "./Metadata";
 
 type Props = {
-  metadata: BoldMetadata[] | undefined;
+  bidsStructure: BidsStructure | undefined;
   directory: string | undefined;
 };
 
-function Config({ metadata, directory }: Props) {
+function Config({ bidsStructure, directory }: Props) {
+  const metadata = bidsStructure?.metadata;
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [selectedSessions, setSelectedSessions] = useState<{
+    [subjectId: string]: string[];
+  }>({});
+
   const [config, setConfig] = useState<TedanaConfig>({
     dataFiles: [],
     echoTimes: [],
@@ -56,6 +62,33 @@ function Config({ metadata, directory }: Props) {
     }
   }, [metadata]);
 
+  const handleSubjectSelection = (subjectId: string) => {
+    setSelectedSubjects((prev) => {
+      if (prev.includes(subjectId)) {
+        return prev.filter((id) => id !== subjectId);
+      } else {
+        return [...prev, subjectId];
+      }
+    });
+  };
+
+  const handleSessionSelection = (subjectId: string, sessionId: string) => {
+    setSelectedSessions((prev) => {
+      const subjectSessions = prev[subjectId] || [];
+      if (subjectSessions.includes(sessionId)) {
+        return {
+          ...prev,
+          [subjectId]: subjectSessions.filter((id) => id !== sessionId),
+        };
+      } else {
+        return {
+          ...prev,
+          [subjectId]: [...subjectSessions, sessionId],
+        };
+      }
+    });
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -68,13 +101,53 @@ function Config({ metadata, directory }: Props) {
     setConfig((prev) => ({ ...prev, [name]: checked }));
   };
 
-  if (!metadata) {
+  if (!bidsStructure?.metadata) {
     return;
   }
 
   return (
     <div className="w-full p-10 container mx-auto">
       <h1 className="text-2xl font-bold mb-4">Tedana Configuration</h1>
+
+      {bidsStructure && (
+        <div>
+          <h2 className="text-xl font-bold mt-4 mb-2">
+            Subject and Session Selection
+          </h2>
+          {bidsStructure.subjects.map(
+            ([subjectId, sessions]: [string, string[]]) => (
+              <div key={subjectId} className="mb-2">
+                <input
+                  type="checkbox"
+                  checked={selectedSubjects.includes(subjectId)}
+                  onChange={() => handleSubjectSelection(subjectId)}
+                />
+                <span className="ml-2 font-semibold">{subjectId}</span>
+
+                <div className="ml-6">
+                  {sessions.map((sessionId) => (
+                    <div key={sessionId}>
+                      <input
+                        type="checkbox"
+                        checked={selectedSessions[subjectId]?.includes(
+                          sessionId
+                        )}
+                        onChange={() =>
+                          handleSessionSelection(subjectId, sessionId)
+                        }
+                      />
+                      <span className="ml-2">
+                        {sessionId || "No session specified"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      )}
+
       <div className="mb-4">
         <Table columns={["Data Files"]} data={config.dataFiles} />
       </div>
