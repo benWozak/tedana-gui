@@ -1,53 +1,48 @@
-import { useState, useEffect } from 'react';
-import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/tauri";
-import useStore from "../../store/useStore";
+import { useState, useCallback } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
+import { listen } from '@tauri-apps/api/event';
+import useStore from '../../store/useStore';
 
-export const useTedanaExecution = () => {
-  const [output, setOutput] = useState<string[]>([]);
-  const [errors, setErrors] = useState<string[]>([]);
+interface OutputLine {
+  content: string;
+  isError: boolean;
+}
+
+export function useTedanaExecution() {
+  const [output, setOutput] = useState<OutputLine[]>([]);
   const [loading, setLoading] = useState(false);
+  const { pythonPath, commandExecutable } = useStore(); 
 
-  useEffect(() => {
-    const unlistenProgress = listen("tedana-progress", (event) => {
-      setOutput((prev) => [...prev, event.payload as string]);
+  const executeTedanaCommand = useCallback(async () => {
+    setLoading(true);
+    setOutput([]);
+
+    const unlisten = await listen('tedana-progress', (event) => {
+      setOutput((prev) => [...prev, { content: event.payload as string, isError: false }]);
     });
 
-    const unlistenError = listen("tedana-error", (event) => {
-      setErrors((prev) => [...prev, event.payload as string]);
+    const unlistenError = await listen('tedana-error', (event) => {
+      setOutput((prev) => [...prev, { content: event.payload as string, isError: true }]);
     });
 
-    return () => {
-      unlistenProgress.then((f) => f());
-      unlistenError.then((f) => f());
-    };
-  }, []);
-
-  const executeTedanaCommand = async () => {
     try {
-      setLoading(true);
-      setOutput([]); // Clear previous output
-      setErrors([]); // Clear previous errors
-      const pythonPath = localStorage.getItem("pythonPath") || "";
-      const commandExecutable = useStore.getState().commandExecutable;
-      const commandArgs = commandExecutable.replace(/^tedana\s/, "");
-
-      console.log("Executing tedana with args:", commandArgs);
-
-      const result = await invoke("run_tedana", {
-        pythonPath: pythonPath,
-        commandArgs: commandArgs,
+      const result = await invoke('run_tedana', {
+        pythonPath,
+        commandArgs: commandExecutable,
       });
-      console.log('Tedana completed successfully:', result)
+      console.log('Tedana execution result:', result);
+      setOutput((prev) => [...prev, { content: 'Tedana execution completed successfully', isError: false }]);
       return true;
     } catch (error) {
-      console.error("Error executing tedana:", error);
-      setErrors((prev) => [...prev, `Error: ${error}`]);
+      console.error('Error executing tedana:', error);
+      setOutput((prev) => [...prev, { content: `Execution error: ${error}`, isError: true }]);
       return false;
     } finally {
       setLoading(false);
+      unlisten();
+      unlistenError();
     }
-  };
+  }, [pythonPath, commandExecutable]);
 
-  return { output, errors, loading, executeTedanaCommand };
-};
+  return { output, loading, executeTedanaCommand };
+}

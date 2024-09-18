@@ -1,49 +1,65 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+
+interface OutputLine {
+  content: string;
+  isError: boolean;
+}
 
 type Props = {
-  output: string[];
-  errors: string[];
+  output: OutputLine[];
   loading: boolean;
   onExecute: () => Promise<boolean>;
 };
 
-function RunScript({ output, errors, loading, onExecute }: Props) {
+function RunScript({ output, loading, onExecute }: Props) {
+  const outputRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     onExecute();
   }, []);
 
-  return (
-    <div className="bg-gray-100 p-4 rounded-md">
-      <h2 className="text-xl font-bold mb-4">
-        {loading ? "Running Tedana" : "Tedana Execution Complete"}
-        {loading ? (
-          <span className="loading loading-dots loading-md"></span>
-        ) : null}
-      </h2>
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [output]);
 
-      {errors.length > 0 ? (
-        <div className="mt-4">
-          <h3 className="text-lg font-bold text-red-600">Errors:</h3>
-          <div className="bg-red-100 p-2 rounded">
-            {errors.map((line, index) => (
-              <p key={index} className="text-sm text-red-700">
-                {line}
-              </p>
-            ))}
-          </div>
+  return (
+    <div className="card bg-base-300">
+      <div className="card-body">
+        <div className="card-title">
+          <h2 className="text-xl font-bold mb-4">
+            {loading ? "Running Tedana" : "Tedana Execution Complete"}
+            {loading && (
+              <span className="loading loading-dots loading-md ml-2"></span>
+            )}
+          </h2>
         </div>
-      ) : (
-        <div id="output-container" className="h-64 overflow-auto">
-          <h3 className="text-lg font-bold">Output:</h3>
-          <div className="bg-white p-2 rounded">
-            {output.map((line, index) => (
-              <p key={index} className="text-sm">
-                {line}
-              </p>
-            ))}
-          </div>
+        <div className="mockup-code h-96 overflow-auto" ref={outputRef}>
+          {output.map((line, index) => (
+            <pre
+              key={index}
+              data-prefix={index + 1}
+              className={`text-sm ${
+                line.isError ? "bg-danger text-danger-content" : ""
+              }`}
+            >
+              <code>{line.content}</code>
+            </pre>
+          ))}
         </div>
-      )}
+
+        {output.some((line) => line.isError) && (
+          <div className="mt-4">
+            <h3 className="text-lg font-bold text-red-600">
+              Errors Encountered
+            </h3>
+            <p className="text-sm text-gray-600">
+              Error messages are highlighted in red above.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
