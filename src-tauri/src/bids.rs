@@ -1,7 +1,6 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -18,13 +17,26 @@ pub struct BoldMetadata {
     pub slice_timing_corrected: Option<bool>,
     pub start_time: Option<f64>,
     pub task_name: Option<String>,
-    pub nifti_file_path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Session {
+    pub sub_id: usize,
+    pub name: String,
+    pub echo_nifti_file_paths: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Subject {
+    pub id: usize,
+    pub name: String,
+    pub sessions: Vec<Session>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BidsStructure {
     pub metadata: Vec<BoldMetadata>,
-    pub subjects: Vec<(String, Vec<String>)>, // (subject_id, [session_ids])
+    pub subjects: Vec<Subject>,
 }
 
 pub fn validate_bids_directory(path: String) -> Result<String, String> {
@@ -158,33 +170,45 @@ pub fn extract_bids_structure(dir_path: &str) -> Result<BidsStructure, String> {
 
     println!("Found {} subject directories", subject_dirs.len());
 
-    let mut subjects: BTreeMap<String, Vec<String>> = BTreeMap::new();
-
-    for subject_dir in subject_dirs {
-        let subject_id = subject_dir
+    for (subject_id, subject_dir) in subject_dirs.iter().enumerate() {
+        let subject_name = subject_dir
             .file_name()
             .unwrap()
             .to_string_lossy()
             .into_owned();
-        let mut sessions = extract_sessions(&subject_dir)?;
+        let mut subject = Subject {
+            id: subject_id,
+            name: subject_name,
+            sessions: Vec::new(),
+        };
 
-        // Sort sessions
-        sessions.sort();
+        let sessions = extract_sessions(subject_dir)?;
 
-        if structure.metadata.is_empty() && !sessions.is_empty() {
-            let session_path = if sessions[0].is_empty() {
-                subject_dir.clone()
+        for (session_id, session_name) in sessions.iter().enumerate() {
+            let session_dir = if session_name.is_empty() {
+                subject_dir.to_path_buf()
             } else {
-                subject_dir.join(&sessions[0])
+                subject_dir.join(session_name)
             };
-            structure.metadata = extract_bold_metadata(&session_path)?;
+
+            let echo_nifti_file_paths = extract_echo_nifti_file_paths(&session_dir)?;
+
+            let session = Session {
+                sub_id: subject_id,
+                name: session_name.clone(),
+                echo_nifti_file_paths,
+            };
+
+            subject.sessions.push(session);
+
+            // Extract metadata from the first subject's first session
+            if structure.metadata.is_empty() && session_id == 0 {
+                structure.metadata = extract_bold_metadata(&session_dir)?;
+            }
         }
 
-        subjects.insert(subject_id, sessions);
+        structure.subjects.push(subject);
     }
-
-    // Convert BTreeMap to Vec
-    structure.subjects = subjects.into_iter().collect();
 
     Ok(structure)
 }
@@ -211,6 +235,28 @@ fn extract_sessions(subject_dir: &Path) -> Result<Vec<String>, String> {
     }
 }
 
+fn extract_echo_nifti_file_paths(session_dir: &Path) -> Result<Vec<String>, String> {
+    let func_dir = session_dir.join("func");
+    let nifti_re = Regex::new(r"_echo-[1-5].*_bold\.(nii|nii\.gz)$").unwrap();
+
+    let mut nifti_files = Vec::new();
+
+    for entry in fs::read_dir(&func_dir)
+        .map_err(|e| format!("Failed to read func directory {:?}: {}", func_dir, e))?
+    {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let file_path = entry.path();
+        let file_name = file_path.file_name().unwrap().to_string_lossy();
+
+        if nifti_re.is_match(&file_name) {
+            nifti_files.push(file_path.to_string_lossy().into_owned());
+        }
+    }
+
+    nifti_files.sort();
+    Ok(nifti_files)
+}
+
 fn extract_bold_metadata(session_dir: &Path) -> Result<Vec<BoldMetadata>, String> {
     println!("Extracting BOLD metadata from: {:?}", session_dir);
     let func_dir = session_dir.join("func");
@@ -219,10 +265,8 @@ fn extract_bold_metadata(session_dir: &Path) -> Result<Vec<BoldMetadata>, String
     }
 
     let json_re = Regex::new(r"_echo-[1-5].*_bold\.json$").unwrap();
-    let nifti_re = Regex::new(r"_echo-[1-5].*_bold\.(nii|nii\.gz)$").unwrap();
 
     let mut json_files = Vec::new();
-    let mut nifti_files = Vec::new();
 
     for entry in fs::read_dir(&func_dir)
         .map_err(|e| format!("Failed to read func directory {:?}: {}", func_dir, e))?
@@ -233,24 +277,15 @@ fn extract_bold_metadata(session_dir: &Path) -> Result<Vec<BoldMetadata>, String
 
         if json_re.is_match(&file_name) {
             json_files.push(file_path);
-        } else if nifti_re.is_match(&file_name) {
-            nifti_files.push(file_path);
         }
     }
 
-    println!(
-        "Found {} JSON files and {} NIFTI files in func directory",
-        json_files.len(),
-        nifti_files.len()
-    );
+    println!("Found {} JSON files in func directory", json_files.len());
 
     let mut metadata_vec = Vec::new();
     for json_path in json_files {
-        if let Ok(mut metadata) = extract_file_metadata(&json_path) {
-            if let Some(nifti_path) = find_matching_nifti(json_path.as_path(), &nifti_files) {
-                metadata.nifti_file_path = nifti_path.to_string_lossy().into_owned();
-                metadata_vec.push(metadata);
-            }
+        if let Ok(metadata) = extract_file_metadata(&json_path) {
+            metadata_vec.push(metadata);
         }
     }
 
@@ -285,21 +320,20 @@ fn extract_file_metadata(file_path: &PathBuf) -> Result<BoldMetadata, String> {
         slice_timing_corrected: json["SliceTimingCorrected"].as_bool(),
         start_time: json["StartTime"].as_f64(),
         task_name: json["TaskName"].as_str().map(String::from),
-        nifti_file_path: String::new(), // This will be filled later
     })
 }
 
-fn find_matching_nifti<'a>(json_path: &Path, nifti_files: &'a [PathBuf]) -> Option<&'a PathBuf> {
-    let json_stem = json_path.file_stem()?.to_str()?;
+// fn find_matching_nifti<'a>(json_path: &Path, nifti_files: &'a [PathBuf]) -> Option<&'a PathBuf> {
+//     let json_stem = json_path.file_stem()?.to_str()?;
 
-    for nifti_path in nifti_files {
-        let nifti_stem = nifti_path.file_stem()?.to_str()?;
-        let nifti_stem = nifti_stem.trim_end_matches(".nii").trim_end_matches(".gz");
+//     for nifti_path in nifti_files {
+//         let nifti_stem = nifti_path.file_stem()?.to_str()?;
+//         let nifti_stem = nifti_stem.trim_end_matches(".nii").trim_end_matches(".gz");
 
-        if json_stem == nifti_stem {
-            return Some(nifti_path);
-        }
-    }
+//         if json_stem == nifti_stem {
+//             return Some(nifti_path);
+//         }
+//     }
 
-    None
-}
+//     None
+// }

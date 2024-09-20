@@ -1,19 +1,29 @@
-export interface BidsStructure {
-  metadata: BoldMetadata[];
-  subjects: [string, string[]][]; 
-}
-
-
 export interface BoldMetadata {
   echo_num: number;
-  delay_time: number;
-  echo_time: number;
-  repetition_time: number;
-  skull_stripped: boolean;
-  slice_timing_corrected: boolean;
-  start_time: number;
-  task_name: string;
-  nifti_file_path: string;
+  delay_time?: number;
+  echo_time?: number;
+  repetition_time?: number;
+  skull_stripped?: boolean;
+  slice_timing_corrected?: boolean;
+  start_time?: number;
+  task_name?: string;
+}
+
+export interface Session {
+  sub_id: number;
+  name: string;
+  echo_nifti_file_paths: string[];
+}
+
+export interface Subject {
+  id: number;
+  name: string;
+  sessions: Session[];
+}
+
+export interface BidsStructure {
+  metadata: BoldMetadata[];
+  subjects: Subject[];
 }
 
 export interface TedanaConfig {

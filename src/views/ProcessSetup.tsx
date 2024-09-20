@@ -10,6 +10,10 @@ function ProcessSetup() {
   const [validDirectory, setValidDirectory] = useState(false);
   const [directory, setDirectory] = useState<string>();
   const [bidsStructure, setBidsStructure] = useState<BidsStructure>();
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [selectedSessions, setSelectedSessions] = useState<{
+    [subjectId: string]: string[];
+  }>({});
 
   const { output, loading, executeTedanaCommand, killTedanaExecution } =
     useTedanaExecution();
@@ -34,13 +38,22 @@ function ProcessSetup() {
           />
         );
       case 1:
-        return <Config bidsStructure={bidsStructure} directory={directory} />;
+        return (
+          <Config
+            bidsStructure={bidsStructure}
+            directory={directory}
+            setSelectedSubjects={setSelectedSubjects}
+            setSelectedSessions={setSelectedSessions}
+          />
+        );
       case 2:
         return (
           <RunScript
             output={output}
             loading={loading}
-            onExecute={executeTedanaCommand}
+            onExecute={() =>
+              executeTedanaCommand(selectedSubjects, selectedSessions)
+            }
             onKill={killTedanaExecution}
           />
         );
@@ -55,7 +68,9 @@ function ProcessSetup() {
       case 0:
         return validDirectory ? "" : "btn-disabled";
       case 1:
-        return !!directory && !!bidsStructure ? "" : "btn-disabled";
+        return !!directory && !!bidsStructure && selectedSubjects.length > 0
+          ? ""
+          : "btn-disabled";
       case 2:
         return loading ? "btn-disabled" : "";
       case 3:
@@ -67,7 +82,7 @@ function ProcessSetup() {
   const handleNext = async () => {
     if (activeStep === 1) {
       setActiveStep(activeStep + 1);
-      await executeTedanaCommand();
+      await executeTedanaCommand(selectedSubjects, selectedSessions);
     } else if (activeStep < steps.length - 1) {
       setActiveStep(activeStep + 1);
     }

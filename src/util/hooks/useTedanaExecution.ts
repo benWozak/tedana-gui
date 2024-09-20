@@ -13,22 +13,16 @@ export function useTedanaExecution() {
   const [loading, setLoading] = useState(false);
   const { pythonPath, commandExecutable } = useStore();
 
-  const executeTedanaCommand = useCallback(async () => {
+  const executeTedanaCommand = useCallback(async (selectedSubjects: string[], selectedSessions: { [subjectId: string]: string[] }) => {
     setLoading(true);
     setOutput([]);
-
-    const unlisten = await listen('tedana-progress', (event) => {
-      setOutput((prev) => [...prev, { content: event.payload as string, isError: false }]);
-    });
-
-    const unlistenError = await listen('tedana-error', (event) => {
-      setOutput((prev) => [...prev, { content: event.payload as string, isError: true }]);
-    });
-
+  
     try {
       const result = await invoke('run_tedana_command', {
         pythonPath,
         commandArgs: commandExecutable,
+        selectedSubjects,
+        selectedSessions,
       });
       console.log('Tedana execution result:', result);
       setOutput((prev) => [...prev, { content: 'Tedana execution completed successfully', isError: false }]);
@@ -39,8 +33,6 @@ export function useTedanaExecution() {
       return false;
     } finally {
       setLoading(false);
-      unlisten();
-      unlistenError();
     }
   }, [pythonPath, commandExecutable]);
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Select, Toggle } from "../ui";
+import { Table, Input, Select, Toggle, Accordion } from "../ui";
 import { TedanaConfig, BidsStructure } from "../../util/types";
 import CommandDisplay from "./CommandDisplay";
 
@@ -9,13 +9,20 @@ import Metadata from "./Metadata";
 type Props = {
   bidsStructure: BidsStructure | undefined;
   directory: string | undefined;
+  setSelectedSubjects: any;
+  setSelectedSessions: any;
 };
 
-function Config({ bidsStructure, directory }: Props) {
+function Config({
+  bidsStructure,
+  directory,
+  setSelectedSubjects,
+  setSelectedSessions,
+}: Props) {
   const metadata = bidsStructure?.metadata;
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-  const [selectedSessions, setSelectedSessions] = useState<{
-    [subjectId: string]: string[];
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<{
+    [subjectId: number]: string[];
   }>({});
 
   const [config, setConfig] = useState<TedanaConfig>({
@@ -47,9 +54,17 @@ function Config({ bidsStructure, directory }: Props) {
   });
 
   useEffect(() => {
-    if (metadata && metadata.length > 0) {
-      const newDataFiles = metadata.map((item) => item.nifti_file_path);
-      const newEchoTimes = metadata
+    if (
+      bidsStructure &&
+      bidsStructure.subjects.length > 0 &&
+      bidsStructure.metadata.length > 0
+    ) {
+      // Get the first subject and session for initial data files
+      const firstSubject = bidsStructure.subjects[0];
+      const firstSession = firstSubject.sessions[0];
+
+      const newDataFiles = firstSession.echo_nifti_file_paths;
+      const newEchoTimes = bidsStructure.metadata
         .map((item) => item.echo_time || 0)
         .filter((time) => time !== 0);
 
@@ -60,10 +75,11 @@ function Config({ bidsStructure, directory }: Props) {
         outDir: directory ? `${directory}/tedana` : "",
       }));
     }
-  }, [metadata]);
+    console.log(bidsStructure);
+  }, [bidsStructure, directory]);
 
-  const handleSubjectSelection = (subjectId: string) => {
-    setSelectedSubjects((prev) => {
+  const handleSubjectSelection = (subjectId: number) => {
+    setSelectedSubjectIds((prev) => {
       if (prev.includes(subjectId)) {
         return prev.filter((id) => id !== subjectId);
       } else {
@@ -72,22 +88,40 @@ function Config({ bidsStructure, directory }: Props) {
     });
   };
 
-  const handleSessionSelection = (subjectId: string, sessionId: string) => {
-    setSelectedSessions((prev) => {
+  const handleSessionSelection = (subjectId: number, sessionName: string) => {
+    setSelectedSessionIds((prev) => {
       const subjectSessions = prev[subjectId] || [];
-      if (subjectSessions.includes(sessionId)) {
+      if (subjectSessions.includes(sessionName)) {
         return {
           ...prev,
-          [subjectId]: subjectSessions.filter((id) => id !== sessionId),
+          [subjectId]: subjectSessions.filter((name) => name !== sessionName),
         };
       } else {
         return {
           ...prev,
-          [subjectId]: [...subjectSessions, sessionId],
+          [subjectId]: [...subjectSessions, sessionName],
         };
       }
     });
   };
+
+  useEffect(() => {
+    setSelectedSubjects(
+      bidsStructure?.subjects
+        .filter((subject) => selectedSubjectIds.includes(subject.id))
+        .map((subject) => subject.name) || []
+    );
+    setSelectedSessions(
+      Object.fromEntries(
+        Object.entries(selectedSessionIds).map(([subjectId, sessionNames]) => [
+          bidsStructure?.subjects.find(
+            (subject) => subject.id === parseInt(subjectId)
+          )?.name || "",
+          sessionNames,
+        ])
+      )
+    );
+  }, [selectedSubjectIds, selectedSessionIds, bidsStructure]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -114,37 +148,35 @@ function Config({ bidsStructure, directory }: Props) {
           <h2 className="text-xl font-bold mt-4 mb-2">
             Subject and Session Selection
           </h2>
-          {bidsStructure.subjects.map(
-            ([subjectId, sessions]: [string, string[]]) => (
-              <div key={subjectId} className="mb-2">
-                <input
-                  type="checkbox"
-                  checked={selectedSubjects.includes(subjectId)}
-                  onChange={() => handleSubjectSelection(subjectId)}
-                />
-                <span className="ml-2 font-semibold">{subjectId}</span>
+          {bidsStructure.subjects.map((subject) => (
+            <div key={subject.id} className="mb-2">
+              <input
+                type="checkbox"
+                checked={selectedSubjectIds.includes(subject.id)}
+                onChange={() => handleSubjectSelection(subject.id)}
+              />
+              <span className="ml-2 font-semibold">{subject.name}</span>
 
-                <div className="ml-6">
-                  {sessions.map((sessionId) => (
-                    <div key={sessionId}>
-                      <input
-                        type="checkbox"
-                        checked={selectedSessions[subjectId]?.includes(
-                          sessionId
-                        )}
-                        onChange={() =>
-                          handleSessionSelection(subjectId, sessionId)
-                        }
-                      />
-                      <span className="ml-2">
-                        {sessionId || "No session specified"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="ml-6">
+                {subject.sessions.map((session) => (
+                  <div key={session.name}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSessionIds[subject.id]?.includes(
+                        session.name
+                      )}
+                      onChange={() =>
+                        handleSessionSelection(subject.id, session.name)
+                      }
+                    />
+                    <span className="ml-2">
+                      {session.name || "No session specified"}
+                    </span>
+                  </div>
+                ))}
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       )}
 
