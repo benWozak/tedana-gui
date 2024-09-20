@@ -1002,20 +1002,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fmriprep-gui"
-version = "0.1.0"
-dependencies = [
- "dark-light",
- "once_cell",
- "regex",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tokio",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3329,6 +3315,20 @@ checksum = "5993dc129e544393574288923d1ec447c857f3f644187f4fbf7d9a875fbfc4fb"
 dependencies = [
  "embed-resource",
  "toml 0.7.8",
+]
+
+[[package]]
+name = "tedana-gui"
+version = "0.1.0"
+dependencies = [
+ "dark-light",
+ "once_cell",
+ "regex",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tokio",
 ]
 
 [[package]]

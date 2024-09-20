@@ -31,7 +31,7 @@ function App() {
         const result = await invoke("check_tedana_installation", {
           pythonPath: pythonPath,
         });
-        setTedanaStatus("Connected: " + result);
+        setTedanaStatus("Connected: v" + result);
         setIsConnected(true);
       } catch (error) {
         console.error("Error checking tedana:", error);

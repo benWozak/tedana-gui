@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "fmriprep-gui",
+    "productName": "tedana-gui",
     "version": "0.1.0"
   },
   "tauri": {
@@ -47,7 +47,7 @@
     },
     "windows": [
       {
-        "title": "fmriprep-gui",
+        "title": "tedana-gui",
         "width": 1200,
         "height": 800
       }
@@ -58,7 +58,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.fmriprep-gui.app",
+      "identifier": "com.tedana-gui.app",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

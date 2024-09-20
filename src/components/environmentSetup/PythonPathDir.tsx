@@ -32,7 +32,6 @@ function PythonPathDir({}: Props) {
         pythonPath: path,
       });
       setTedanaStatus(`Tedana version ${version} installed`);
-      // Now that we know tedana is installed, let's try to run it
       await runTedana(path);
     } catch (error) {
       console.error("Error checking tedana installation:", error);
@@ -46,7 +45,9 @@ function PythonPathDir({}: Props) {
     try {
       const result = await invoke("run_tedana_command", {
         pythonPath: path,
-        args: ["--version"],
+        commandArgs: "--version",
+        selectedSubjects: [],
+        selectedSessions: {},
       });
       setTedanaStatus(
         (prevStatus) => `${prevStatus}. Tedana CLI accessible: ${result}`
@@ -91,20 +92,6 @@ function PythonPathDir({}: Props) {
               </>
             }
           />
-          {/* <div className="collapse bg-base-200 my-4 max-w-2xl">
-            <input type="checkbox" />
-            <div className="collapse-title text-lg font-medium flex">
-              <CircleHelp color="#66cc8a" className="mr-2" /> Not sure where to
-              find your Python environment path?
-            </div>
-            <div className="collapse-content">
-              To find the path to your virtual environment, you can run this
-              command in your terminal:
-              <CodeSnippet code="which python" language="bash" />
-              This will give you the path to the Python executable in your
-              activated virtual environment.
-            </div>
-          </div> */}
         </div>
       </div>
     </div>
