@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::collections::HashMap;
 use tauri::Manager;
 
 mod bids;
@@ -20,8 +19,11 @@ async fn listen_system_theme_changes(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
-fn check_tedana_installation(python_path: String) -> Result<String, String> {
-    tedana::check_tedana_installation(python_path)
+fn check_tedana_installation(
+    python_path: String,
+    environment_path: Option<String>,
+) -> Result<String, String> {
+    tedana::check_tedana_installation(python_path, environment_path)
 }
 
 #[tauri::command]
@@ -29,17 +31,8 @@ async fn run_tedana_command(
     window: tauri::Window,
     python_path: String,
     command_args: String,
-    selected_subjects: Vec<String>,
-    selected_sessions: HashMap<String, Vec<String>>,
 ) -> Result<String, String> {
-    tedana::run_tedana(
-        window,
-        python_path,
-        command_args,
-        selected_subjects,
-        selected_sessions,
-    )
-    .await
+    tedana::run_tedana(window, python_path, command_args).await
 }
 
 #[tauri::command]

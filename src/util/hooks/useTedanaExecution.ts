@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
-import { listen } from '@tauri-apps/api/event';
 import useStore from '../../store/useStore';
 
 interface OutputLine {
@@ -11,30 +10,44 @@ interface OutputLine {
 export function useTedanaExecution() {
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [loading, setLoading] = useState(false);
-  const { pythonPath, commandExecutable } = useStore();
+  const { commandExecutable } = useStore();
+  const pythonPath = localStorage.getItem('pythonPath');
+  // const environmentPath = localStorage.getItem('environmentPath');
 
-  const executeTedanaCommand = useCallback(async (selectedSubjects: string[], selectedSessions: { [subjectId: string]: string[] }) => {
+  const executeTedanaCommand = useCallback(async (selectedSubjects: string[], selectedSessions: { [subjectId: string]: string[] }): Promise<boolean> => {
     setLoading(true);
     setOutput([]);
   
+  
     try {
-      const result = await invoke('run_tedana_command', {
-        pythonPath,
-        commandArgs: commandExecutable,
-        selectedSubjects,
-        selectedSessions,
-      });
-      console.log('Tedana execution result:', result);
-      setOutput((prev) => [...prev, { content: 'Tedana execution completed successfully', isError: false }]);
+      for (const subjectId of selectedSubjects) {
+        const sessions = selectedSessions[subjectId] || [];
+        for (const sessionId of sessions) {
+          const specificCommand = generateSpecificCommand(commandExecutable, subjectId, sessionId);
+          console.log(`Executing for ${subjectId}, ${sessionId}: ${specificCommand}`);
+          const result = await invoke('run_tedana_command', {
+            pythonPath,
+            commandArgs: specificCommand,
+          });
+          setOutput(prev => [...prev, { content: `Tedana execution completed for subject ${subjectId}, session ${sessionId}`, isError: false }]);
+          console.log(`Tedana execution result for ${subjectId}, ${sessionId}:`, result);
+        }
+      }
+      setLoading(false);
       return true;
     } catch (error) {
-      console.error('Error executing tedana:', error);
-      setOutput((prev) => [...prev, { content: `Execution error: ${error}`, isError: true }]);
-      return false;
-    } finally {
+      console.error(`Error executing tedana:`, error);
+      setOutput(prev => [...prev, { content: `Execution error: ${error}`, isError: true }]);
       setLoading(false);
+      return false;
     }
-  }, [pythonPath, commandExecutable]);
+  }, [commandExecutable]);
+
+  const generateSpecificCommand = (baseCommand: string, subjectId: string, sessionId: string) => {
+    return baseCommand
+      .replace(/\$\{SUBJECT\}/g, subjectId)
+      .replace(/\$\{SESSION\}/g, sessionId);
+  };
 
   const killTedanaExecution = useCallback(async () => {
     try {

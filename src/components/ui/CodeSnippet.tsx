@@ -3,7 +3,7 @@ import { useCopyToClipboard } from "usehooks-ts";
 import { Copy, Check } from "lucide-react";
 
 type CodeSnippetProps = {
-  code: string;
+  code: React.ReactElement | string;
   language: string;
 };
 

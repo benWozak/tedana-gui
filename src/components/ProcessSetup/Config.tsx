@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Select, Toggle, Accordion } from "../ui";
+import { Table, Input, Select, Toggle, Accordion, CodeSnippet } from "../ui";
 import { TedanaConfig, BidsStructure } from "../../util/types";
 import CommandDisplay from "./CommandDisplay";
 
@@ -72,7 +72,7 @@ function Config({
         ...prevConfig,
         dataFiles: newDataFiles,
         echoTimes: newEchoTimes,
-        outDir: directory ? `${directory}/tedana` : "",
+        outDir: directory ? `${directory}` : "",
       }));
     }
     console.log(bidsStructure);
@@ -379,13 +379,10 @@ function Config({
       */}
       <div className="mt-4">
         <h2 className="text-xl font-bold mb-2">Generated Command:</h2>
-        <div className="mockup-code">
-          <pre data-prefix="$">
-            <code>
-              <CommandDisplay config={config} />
-            </code>
-          </pre>
-        </div>
+        <CodeSnippet
+          language="bash"
+          code={<CommandDisplay config={config} />}
+        />
       </div>
     </div>
   );
