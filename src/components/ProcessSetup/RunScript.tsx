@@ -41,30 +41,28 @@ function RunScript({ output, loading, onExecute, onKill }: Props) {
             </button>
           )}
         </div>
-        <div className="mockup-code h-96 overflow-auto" ref={outputRef}>
+        <div
+          className="mockup-code h-96 overflow-y-auto overflow-x-hidden"
+          ref={outputRef}
+        >
           {output.map((line, index) => (
-            <pre
-              key={index}
-              data-prefix={index + 1}
-              className={`text-sm ${
-                line.isError ? "bg-danger text-danger-content" : ""
-              }`}
-            >
-              <code>{line.content}</code>
+            <pre key={index} data-prefix={index + 1} className={`text-sm`}>
+              <code
+                style={
+                  line.content.includes("RuntimeError") ||
+                  line.content.includes("Execution error")
+                    ? { color: "red" }
+                    : line.content.includes("WARNING")
+                    ? { color: "yellow" }
+                    : { color: "#66cc8a" }
+                }
+                className={`text-wrap`}
+              >
+                {line.content}
+              </code>
             </pre>
           ))}
         </div>
-
-        {output.some((line) => line.isError) && (
-          <div className="mt-4">
-            <h3 className="text-lg font-bold text-red-600">
-              Errors Encountered
-            </h3>
-            <p className="text-sm text-gray-600">
-              Error messages are highlighted in red above.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

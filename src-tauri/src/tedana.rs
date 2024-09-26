@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::Command;
+use tauri::Window;
 use tokio::sync::Mutex;
 
 static IS_RUNNING: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
@@ -23,49 +25,54 @@ pub async fn run_tedana(
 }
 
 fn run_tedana_internal(
-    window: &tauri::Window,
+    window: &Window,
     python_path: &str,
     command_args: &str,
 ) -> Result<String, String> {
     let env_path = Path::new(python_path).parent().unwrap().parent().unwrap();
-
-    // Step 1: Activate the virtual environment
     let activate_script = env_path.join("bin").join("activate");
     let activate_command = format!(". {}", activate_script.display());
+    let tedana_command = format!("tedana {}", command_args);
 
-    // Create a shell that sources the activate script
     let mut child = Command::new("bash")
         .arg("-c")
-        .arg(&format!("{}; exec bash", activate_command))
-        .stdin(std::process::Stdio::piped())
+        .arg(&format!("{}; {}", activate_command, tedana_command))
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Failed to start shell: {}", e))?;
+        .map_err(|e| format!("Failed to start process: {}", e))?;
 
-    // Step 2: Execute tedana in the activated environment
-    let tedana_command = format!("tedana {}", command_args);
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
 
-    println!("Executing command: {}", tedana_command);
+    let window_clone = window.clone();
+    std::thread::spawn(move || {
+        let reader = BufReader::new(stdout);
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                window_clone.emit("tedana-output", line).unwrap();
+            }
+        }
+    });
 
-    if let Some(mut stdin) = child.stdin.take() {
-        use std::io::Write;
-        writeln!(stdin, "{}", tedana_command)
-            .map_err(|e| format!("Failed to write to stdin: {}", e))?;
-    }
+    let window_clone = window.clone();
+    std::thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                window_clone.emit("tedana-error", line).unwrap();
+            }
+        }
+    });
 
-    let output = child
-        .wait_with_output()
+    let status = child
+        .wait()
         .map_err(|e| format!("Failed to wait on child: {}", e))?;
 
-    // Process the output
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    if status.success() {
+        Ok("Tedana execution completed successfully".to_string())
     } else {
-        Err(format!(
-            "Error:\n{}",
-            String::from_utf8_lossy(&output.stderr)
-        ))
+        Err("Tedana execution failed".to_string())
     }
 }
 

@@ -1,36 +1,44 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
+import { listen } from '@tauri-apps/api/event';
 import useStore from '../../store/useStore';
 
-interface OutputLine {
-  content: string;
-  isError: boolean;
-}
-
 export function useTedanaExecution() {
-  const [output, setOutput] = useState<OutputLine[]>([]);
+  const [output, setOutput] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { commandExecutable } = useStore();
   const pythonPath = localStorage.getItem('pythonPath');
-  // const environmentPath = localStorage.getItem('environmentPath');
+
+  useEffect(() => {
+    const unlisten1 = listen('tedana-output', (event: any) => {
+      setOutput(prev => [...prev, { content: event.payload as string, isError: false }]);
+    });
+
+    const unlisten2 = listen('tedana-error', (event: any) => {
+      setOutput(prev => [...prev, { content: event.payload as string, isError: true }]);
+    });
+
+    return () => {
+      unlisten1.then(f => f());
+      unlisten2.then(f => f());
+    };
+  }, []);
 
   const executeTedanaCommand = useCallback(async (selectedSubjects: string[], selectedSessions: { [subjectId: string]: string[] }): Promise<boolean> => {
     setLoading(true);
     setOutput([]);
-  
-  
+
     try {
       for (const subjectId of selectedSubjects) {
         const sessions = selectedSessions[subjectId] || [];
         for (const sessionId of sessions) {
           const specificCommand = generateSpecificCommand(commandExecutable, subjectId, sessionId);
+          setOutput(prev => [...prev, { content: `Executing command: ${specificCommand}`, isError: false }]);
           console.log(`Executing for ${subjectId}, ${sessionId}: ${specificCommand}`);
-          const result = await invoke('run_tedana_command', {
+          await invoke('run_tedana_command', {
             pythonPath,
             commandArgs: specificCommand,
           });
-          setOutput(prev => [...prev, { content: `Tedana execution completed for subject ${subjectId}, session ${sessionId}`, isError: false }]);
-          console.log(`Tedana execution result for ${subjectId}, ${sessionId}:`, result);
         }
       }
       setLoading(false);
