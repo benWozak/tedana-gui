@@ -7,12 +7,12 @@ type Props = {
 
 function Home({ tedanaStatus, isConnected }: Props) {
   return (
-    <div className="w-full px-4 container mx-auto text-center">
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="w-full px-4 container mx-auto text-center flex flex-col justify-center items-center">
+      <h1 className="text-3xl font-bold my-6">
         Welcome to the Graphical User Interface for Tedana
       </h1>
 
-      <div className="mb-8 p-4 bg-base-200 rounded-lg">
+      <div className="my-6 p-4 bg-base-200 rounded-lg w-128">
         <p className="mb-2">
           Tedana Status:{" "}
           <span className={isConnected ? "text-success" : "text-error"}>
@@ -29,7 +29,7 @@ function Home({ tedanaStatus, isConnected }: Props) {
         )} */}
       </div>
 
-      <div className="mt-10 flex flex-col justify-center items-center">
+      <div className="mt-8 flex flex-col justify-center items-center px-20">
         <p className="mb-6 px-32">
           TE-dependent analysis (tedana) is a Python library for denoising
           multi-echo functional magnetic resonance imaging (fMRI) data.

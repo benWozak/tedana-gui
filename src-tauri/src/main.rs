@@ -41,13 +41,13 @@ async fn kill_tedana_command() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn validate_bids_directory(path: String) -> Result<String, String> {
-    bids::validate_bids_directory(path)
+fn validate_bids_directory(path: String, convention: String) -> Result<String, String> {
+    bids::validate_bids_directory(path, convention)
 }
 
 #[tauri::command]
-fn extract_bids_structure(path: String) -> Result<BidsStructure, String> {
-    bids::extract_bids_structure(&path)
+fn extract_bids_structure(path: String, convention: String) -> Result<BidsStructure, String> {
+    bids::extract_bids_structure(&path, &convention)
 }
 
 fn main() {

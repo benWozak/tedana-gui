@@ -39,11 +39,14 @@ pub struct BidsStructure {
     pub subjects: Vec<Subject>,
 }
 
-pub fn validate_bids_directory(path: String) -> Result<String, String> {
+pub fn validate_bids_directory(path: String, convention: String) -> Result<String, String> {
     let dir_path = Path::new(&path);
     if !dir_path.is_dir() {
         return Err("The provided path is not a directory".to_string());
     }
+
+    // Create a regex to match "sub-" followed by any characters
+    let sub_regex = Regex::new(r"^sub-").unwrap();
 
     // Check for sub-* directories
     let sub_dirs: Vec<_> = fs::read_dir(dir_path)
@@ -51,7 +54,7 @@ pub fn validate_bids_directory(path: String) -> Result<String, String> {
         .filter_map(|entry| {
             let entry = entry.ok()?;
             let file_name = entry.file_name().to_string_lossy().into_owned();
-            if file_name.starts_with("sub-") && entry.file_type().ok()?.is_dir() {
+            if sub_regex.is_match(&file_name) && entry.file_type().ok()?.is_dir() {
                 Some(entry.path())
             } else {
                 None
@@ -64,19 +67,22 @@ pub fn validate_bids_directory(path: String) -> Result<String, String> {
     }
 
     for sub_dir in sub_dirs {
-        validate_subject_directory(&sub_dir)?;
+        validate_subject_directory(&sub_dir, &convention)?;
     }
 
     Ok("This directory is BIDS-compatible".to_string())
 }
 
-fn validate_subject_directory(sub_dir: &Path) -> Result<(), String> {
+fn validate_subject_directory(sub_dir: &Path, convention: &str) -> Result<(), String> {
+    // Create a regex to match "ses-" followed by any number (with or without leading zero)
+    let ses_regex = Regex::new(r"^ses-\d+$").unwrap();
+
     let ses_dirs: Vec<_> = fs::read_dir(sub_dir)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| format!("Failed to read subject directory {:?}: {}", sub_dir, e))?
         .filter_map(|entry| {
             let entry = entry.ok()?;
             let file_name = entry.file_name().to_string_lossy().into_owned();
-            if file_name.starts_with("ses-") && entry.file_type().ok()?.is_dir() {
+            if ses_regex.is_match(&file_name) && entry.file_type().ok()?.is_dir() {
                 Some(entry.path())
             } else {
                 None
@@ -85,33 +91,34 @@ fn validate_subject_directory(sub_dir: &Path) -> Result<(), String> {
         .collect();
 
     if ses_dirs.is_empty() {
-        // No ses- directories, check for func directly in sub- directory
-        validate_func_directory(sub_dir)?;
+        validate_func_directory(sub_dir, convention)?;
     } else {
-        // Check each ses- directory
         for ses_dir in ses_dirs {
-            validate_func_directory(&ses_dir)?;
+            validate_func_directory(&ses_dir, convention)?;
         }
     }
 
     Ok(())
 }
 
-fn validate_func_directory(dir: &Path) -> Result<(), String> {
+fn validate_func_directory(dir: &Path, convention: &str) -> Result<(), String> {
     let func_dir = dir.join("func");
     if !func_dir.is_dir() {
         return Err(format!("No 'func' directory found in {:?}", dir));
     }
 
+    let bold_regex = Regex::new(&format!(
+        r"_{}\.(json|nii|nii\.gz)$",
+        regex::escape(convention)
+    ))
+    .unwrap();
+
     let bold_files: Vec<_> = fs::read_dir(&func_dir)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| format!("Failed to read func directory {:?}: {}", func_dir, e))?
         .filter_map(|entry| {
             let entry = entry.ok()?;
             let file_name = entry.file_name().to_string_lossy().into_owned();
-            if file_name.ends_with("_bold.json")
-                || file_name.ends_with("_bold.nii")
-                || file_name.ends_with("_bold.nii.gz")
-            {
+            if bold_regex.is_match(&file_name) {
                 Some(file_name)
             } else {
                 None
@@ -121,28 +128,31 @@ fn validate_func_directory(dir: &Path) -> Result<(), String> {
 
     if bold_files.is_empty() {
         return Err(format!(
-            "No '_bold.json', '_bold.nii', or '_bold.nii.gz' files found in {:?}",
-            func_dir
+            "No files matching the convention '{}' found in {:?}",
+            convention, func_dir
         ));
     }
 
     // Check if there's at least one .json file and one .nii or .nii.gz file
-    let has_json = bold_files.iter().any(|f| f.ends_with("_bold.json"));
-    let has_nii = bold_files
+    let has_json = bold_files
         .iter()
-        .any(|f| f.ends_with("_bold.nii") || f.ends_with("_bold.nii.gz"));
+        .any(|f| f.ends_with(&format!("_{}.json", convention)));
+    let has_nii = bold_files.iter().any(|f| {
+        f.ends_with(&format!("_{}.nii", convention))
+            || f.ends_with(&format!("_{}.nii.gz", convention))
+    });
 
     if !has_json || !has_nii {
         return Err(format!(
-            "Missing required '_bold.json' or '_bold.nii'/'_bold.nii.gz' files in {:?}",
-            func_dir
+            "Missing required JSON or NIfTI files with convention '{}' in {:?}",
+            convention, func_dir
         ));
     }
 
     Ok(())
 }
 
-pub fn extract_bids_structure(dir_path: &str) -> Result<BidsStructure, String> {
+pub fn extract_bids_structure(dir_path: &str, convention: &str) -> Result<BidsStructure, String> {
     println!("Starting BIDS structure extraction from: {}", dir_path);
     let path = Path::new(dir_path);
     let mut structure = BidsStructure {
@@ -191,7 +201,7 @@ pub fn extract_bids_structure(dir_path: &str) -> Result<BidsStructure, String> {
                 subject_dir.join(session_name)
             };
 
-            let echo_nifti_file_paths = extract_echo_nifti_file_paths(&session_dir)?;
+            let echo_nifti_file_paths = extract_echo_nifti_file_paths(&session_dir, convention)?;
 
             let session = Session {
                 sub_id: subject_id,
@@ -203,7 +213,7 @@ pub fn extract_bids_structure(dir_path: &str) -> Result<BidsStructure, String> {
 
             // Extract metadata from the first subject's first session
             if structure.metadata.is_empty() && session_id == 0 {
-                structure.metadata = extract_bold_metadata(&session_dir)?;
+                structure.metadata = extract_bold_metadata(&session_dir, convention)?;
             }
         }
 
@@ -235,9 +245,16 @@ fn extract_sessions(subject_dir: &Path) -> Result<Vec<String>, String> {
     }
 }
 
-fn extract_echo_nifti_file_paths(session_dir: &Path) -> Result<Vec<String>, String> {
+fn extract_echo_nifti_file_paths(
+    session_dir: &Path,
+    convention: &str,
+) -> Result<Vec<String>, String> {
     let func_dir = session_dir.join("func");
-    let nifti_re = Regex::new(r"_echo-[1-5].*_bold\.(nii|nii\.gz)$").unwrap();
+    let nifti_re = Regex::new(&format!(
+        r"_echo-[1-5].*{}.*\.(nii|nii\.gz)$",
+        regex::escape(convention)
+    ))
+    .unwrap();
 
     let mut nifti_files = Vec::new();
 
@@ -257,14 +274,21 @@ fn extract_echo_nifti_file_paths(session_dir: &Path) -> Result<Vec<String>, Stri
     Ok(nifti_files)
 }
 
-fn extract_bold_metadata(session_dir: &Path) -> Result<Vec<BoldMetadata>, String> {
+fn extract_bold_metadata(
+    session_dir: &Path,
+    convention: &str,
+) -> Result<Vec<BoldMetadata>, String> {
     println!("Extracting BOLD metadata from: {:?}", session_dir);
     let func_dir = session_dir.join("func");
     if !func_dir.is_dir() {
         return Err(format!("No 'func' directory found in {:?}", session_dir));
     }
 
-    let json_re = Regex::new(r"_echo-[1-5].*_bold\.json$").unwrap();
+    let json_re = Regex::new(&format!(
+        r"_echo-[1-5].*{}.*\.json$",
+        regex::escape(convention)
+    ))
+    .unwrap();
 
     let mut json_files = Vec::new();
 
