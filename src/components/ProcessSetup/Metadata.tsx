@@ -17,7 +17,8 @@ function Metadata({ metadata }: Props) {
         <div className="stat">
           <div className="stat-title">Start Time</div>
           <div className="stat-value flex justify-center">
-            {formatMilliseconds(metadata[0]?.start_time)}
+            {!!metadata[0]?.start_time &&
+              formatMilliseconds(metadata[0]?.start_time)}
           </div>
           <div className="stat-desc">milliseconds</div>
         </div>
@@ -27,7 +28,8 @@ function Metadata({ metadata }: Props) {
         <div className="stat">
           <div className="stat-title">Delay</div>
           <div className="stat-value flex justify-center">
-            {formatMilliseconds(metadata[0]?.delay_time)}
+            {!!metadata[0]?.delay_time &&
+              formatMilliseconds(metadata[0]?.delay_time)}
           </div>
           <div className="stat-desc">milliseconds</div>
         </div>

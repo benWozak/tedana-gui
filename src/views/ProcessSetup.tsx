@@ -2,6 +2,7 @@ import { useState } from "react";
 import ProjectDir from "../components/ProcessSetup/ProjectDir";
 import Config from "../components/ProcessSetup/Config";
 import RunScript from "../components/ProcessSetup/RunScript";
+import TedanaReport from "../components/ProcessSetup/TedanaReports";
 import { BidsStructure } from "../util/types";
 import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
 
@@ -58,6 +59,13 @@ function ProcessSetup() {
           />
         );
       case 3:
+        return (
+          <TedanaReport
+            directory={directory}
+            selectedSubjects={selectedSubjects}
+            selectedSessions={selectedSessions}
+          />
+        );
       default:
         return null;
     }

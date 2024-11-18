@@ -16,7 +16,7 @@ function EchoTimes({ metadata }: Props) {
           <div key={index} className="stat">
             <div className="stat-title">{`Echo ${item.echo_num}`}</div>
             <div className="stat-value">
-              {formatMilliseconds(item.echo_time)}
+              {!!item.echo_time && formatMilliseconds(item.echo_time)}
             </div>
             <div className="stat-desc">milliseconds</div>
           </div>

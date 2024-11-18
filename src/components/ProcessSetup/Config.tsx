@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Select, Toggle, Accordion, CodeSnippet } from "../ui";
+import { Table, Input, Select, Toggle, CodeSnippet } from "../ui";
 import { TedanaConfig, BidsStructure } from "../../util/types";
 import CommandDisplay from "./CommandDisplay";
 

@@ -19,7 +19,6 @@ export const InfoBlock = ({
     if (defaultOpen) {
       setOpen(true);
     }
-    console.log("test");
   }, [defaultOpen]);
   return (
     <div

@@ -3322,6 +3322,7 @@ name = "tedana-gui"
 version = "0.1.0"
 dependencies = [
  "dark-light",
+ "http",
  "once_cell",
  "regex",
  "serde",
