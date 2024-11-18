@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DirectorySelector from "./DirectorySelector";
 import { InfoBlock, Alert, Input } from "../ui";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -20,6 +20,13 @@ function ProjectDir({ onSuccessCallback }: Props) {
     type: "info" | "success" | "warning" | "error";
     content: string;
   } | null>();
+
+  useEffect(() => {
+    const workingDirectory = localStorage.getItem("workingDirectory");
+    const fileConvention = localStorage.getItem("fileConvention");
+    if (workingDirectory) setSelectedPath(workingDirectory);
+    if (fileConvention) setConventionString(fileConvention);
+  }, []);
 
   const validateBIDS = async () => {
     if (!selectedPath || !conventionString) {
@@ -63,6 +70,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
           content: "No subjects found in the specified directory.",
         });
       } else {
+        savePath();
         onSuccessCallback(result, selectedPath, conventionString);
       }
     } catch (error) {
@@ -72,6 +80,11 @@ function ProjectDir({ onSuccessCallback }: Props) {
         content: "An error occurred while extracting BIDS structure.",
       });
     }
+  };
+
+  const savePath = () => {
+    localStorage.setItem("workingDirectory", selectedPath);
+    localStorage.setItem("fileConvention", conventionString);
   };
 
   const handleInputDirSelect = (path: string) => {
@@ -109,12 +122,13 @@ function ProjectDir({ onSuccessCallback }: Props) {
           <DirectorySelector
             label="Input Directory"
             onSelect={handleInputDirSelect}
+            path={localStorage.getItem("workingDirectory")}
           />
         </div>
 
         <div className="mt-4 w-full">
           <div className="mt-4">
-            <h3 className="text-xl font-bold mb-4">File convention</h3>
+            <h3 className="text-xl mb-2">File convention</h3>
             <Input
               type="text"
               placeholder="e.g., flirtboldStcMcf"
@@ -123,7 +137,6 @@ function ProjectDir({ onSuccessCallback }: Props) {
             />
           </div>
           <InfoBlock
-            defaultOpen
             fullWidth
             title="What is the naming convention for the files to look for?"
             content={
@@ -157,25 +170,27 @@ function ProjectDir({ onSuccessCallback }: Props) {
                 <p>
                   For example, if your file looked like this:{" "}
                   <i className="text-secondary">
-                    sub-1973002P_ses-3_task-allvideos_mergedses_echo-1_flirtboldStcMcf.nii.gz
+                    sub-1973002P_ses-3_task_echo-1_flirtboldStcMcf.nii.gz
                   </i>
                   , you would enter "flirtboldStcMcf" in the input above.
                 </p>
               </>
             }
           />
-          <button
-            className="btn btn-primary mt-4"
-            onClick={validateBIDS}
-            disabled={!selectedPath || !conventionString}
-          >
-            Validate and Extract BIDS Structure
-          </button>
-        </div>
-      </div>
-      <div className="mt-4 w-full max-w-2xl">
-        <div>
-          {!!message && <Alert type={message.type} content={message.content} />}
+          <div className="flex justify-between">
+            <button
+              className="btn btn-primary mt-4"
+              onClick={validateBIDS}
+              disabled={!selectedPath || !conventionString}
+            >
+              Validate & Extract
+            </button>
+            <div className="w-full max-w-xl">
+              {!!message && (
+                <Alert type={message.type} content={message.content} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -97,7 +97,7 @@ function ProcessSetup() {
   };
 
   return (
-    <div className="w-full p-10 container mx-auto">
+    <div className="w-full pb-10 container mx-auto">
       <ul className="steps w-full mb-8">
         {steps.map((step, index) => (
           <li
@@ -109,7 +109,7 @@ function ProcessSetup() {
         ))}
       </ul>
 
-      <div className="mt-10">
+      <div>
         {getStep(activeStep)}
 
         <div className="mt-8 flex justify-end gap-2">

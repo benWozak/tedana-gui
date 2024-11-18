@@ -6,10 +6,11 @@ import { Input } from "../ui";
 interface DirectorySelectorProps {
   label: string;
   onSelect: (path: string) => void;
+  path?: string | null;
 }
 
-function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
-  const [selectedPath, setSelectedPath] = useState<string>("");
+function DirectorySelector({ label, onSelect, path }: DirectorySelectorProps) {
+  const [selectedPath, setSelectedPath] = useState<string>(() => path || "");
 
   const handleSelectDirectory = async () => {
     try {
@@ -32,7 +33,7 @@ function DirectorySelector({ label, onSelect }: DirectorySelectorProps) {
   return (
     <div className="form-control w-full max-w-3xl">
       <label className="label">
-        <span className="label-text">{label}</span>
+        <span className="text-lg label-text">{label}</span>
       </label>
       <div className="input-group flex gap-2">
         <Input

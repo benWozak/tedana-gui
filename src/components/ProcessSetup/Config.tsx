@@ -5,6 +5,7 @@ import CommandDisplay from "./CommandDisplay";
 
 import EchoTimes from "./EchoTimes";
 import Metadata from "./Metadata";
+import SubjectSelector from "./SubjectSelector";
 
 type Props = {
   bidsStructure: BidsStructure | undefined;
@@ -74,8 +75,22 @@ function Config({
         echoTimes: newEchoTimes,
         outDir: directory ? `${directory}` : "",
       }));
+
+      // Set default selections for subjects and sessions
+      const defaultSubjectIds = bidsStructure.subjects.map(
+        (subject) => subject.id
+      );
+      const defaultSessionIds: { [subjectId: number]: string[] } = {};
+
+      bidsStructure.subjects.forEach((subject) => {
+        defaultSessionIds[subject.id] = subject.sessions.map(
+          (session) => session.name
+        );
+      });
+
+      setSelectedSubjectIds(defaultSubjectIds);
+      setSelectedSessionIds(defaultSessionIds);
     }
-    console.log(bidsStructure);
   }, [bidsStructure, directory]);
 
   const handleSubjectSelection = (subjectId: number) => {
@@ -135,52 +150,78 @@ function Config({
     setConfig((prev) => ({ ...prev, [name]: checked }));
   };
 
+  const transformedSubjects = bidsStructure?.subjects.map((subject) => ({
+    id: subject.id,
+    name: subject.name,
+    sessions: subject.sessions.map((session) => session.name), // Assuming `session.name` is a string
+  }));
+
   if (!bidsStructure?.metadata) {
     return;
   }
 
   return (
-    <div className="w-full p-10 container mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Tedana Configuration</h1>
+    <div className="w-full container mx-auto">
+      <h1 className="text-3xl font-bold mb-4">Tedana Configuration</h1>
 
       {bidsStructure && (
         <div>
           <h2 className="text-xl font-bold mt-4 mb-2">
             Subject and Session Selection
           </h2>
-          {bidsStructure.subjects.map((subject) => (
-            <div key={subject.id} className="mb-2">
-              <input
-                type="checkbox"
-                checked={selectedSubjectIds.includes(subject.id)}
-                onChange={() => handleSubjectSelection(subject.id)}
-              />
-              <span className="ml-2 font-semibold">{subject.name}</span>
-
-              <div className="ml-6">
-                {subject.sessions.map((session) => (
-                  <div key={session.name}>
+          <SubjectSelector
+            subjects={transformedSubjects || []}
+            selectedSubjectIds={selectedSubjectIds}
+            selectedSessionIds={selectedSessionIds}
+            handleSubjectSelection={handleSubjectSelection}
+            handleSessionSelection={handleSessionSelection}
+          />
+          {/* {bidsStructure.subjects.map((subject) => (
+              <div key={subject.id} className="mb-2">
+                <div className="form-control flex-row">
+                  <label className="label cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={selectedSessionIds[subject.id]?.includes(
-                        session.name
-                      )}
-                      onChange={() =>
-                        handleSessionSelection(subject.id, session.name)
-                      }
+                      defaultChecked
+                      className="checkbox checkbox-primary"
+                      checked={selectedSubjectIds.includes(subject.id)}
+                      onChange={() => handleSubjectSelection(subject.id)}
                     />
-                    <span className="ml-2">
-                      {session.name || "No session specified"}
+                    <span className="label-text ml-2 font-semibold">
+                      {subject.name}
                     </span>
-                  </div>
-                ))}
+                  </label>
+                </div>
+
+                <div className="ml-6">
+                  {subject.sessions.map((session) => (
+                    <div key={session.name} className="form-control flex-row">
+                      <label className="label cursor-pointer">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="checkbox checkbox-primary"
+                          checked={selectedSessionIds[subject.id]?.includes(
+                            session.name
+                          )}
+                          onChange={() =>
+                            handleSessionSelection(subject.id, session.name)
+                          }
+                        />
+                        <span className="label-text ml-2 font-semibold">
+                          {session.name}
+                        </span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))} */}
         </div>
       )}
 
       <div className="mb-4">
+        <h2 className="text-xl font-bold mt-4 mb-2">Selected files (sample)</h2>
         <Table columns={["Data Files"]} data={config.dataFiles} />
       </div>
       <div className="mb-4">
