@@ -10,6 +10,7 @@ const Home = lazy(() => import("./views/Home"));
 const Installation = lazy(() => import("./views/Installation"));
 const EnvironmentSetup = lazy(() => import("./views/EnvironmentSetup"));
 const ProcessSetup = lazy(() => import("./views/ProcessSetup"));
+const ReportViewer = lazy(() => import("./views/ReportViewer"));
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +66,7 @@ function App() {
             <Route path="installation" element={<Installation />} />
             <Route path="environment" element={<EnvironmentSetup />} />
             <Route path="process" element={<ProcessSetup />} />
+            <Route path="results" element={<ReportViewer />} />
           </Route>
         </Routes>
       </Suspense>

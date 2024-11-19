@@ -224,7 +224,7 @@ pub fn extract_bids_structure(dir_path: &str, convention: &str) -> Result<BidsSt
 }
 
 fn extract_sessions(subject_dir: &Path) -> Result<Vec<String>, String> {
-    let session_dirs: Vec<_> = fs::read_dir(subject_dir)
+    let mut session_dirs: Vec<_> = fs::read_dir(subject_dir)
         .map_err(|e| format!("Failed to read subject directory {:?}: {}", subject_dir, e))?
         .filter_map(|entry| {
             let entry = entry.ok()?;
@@ -241,6 +241,7 @@ fn extract_sessions(subject_dir: &Path) -> Result<Vec<String>, String> {
         // If no session directories, assume a single unnamed session
         Ok(vec!["".to_string()])
     } else {
+        session_dirs.sort(); // Sort the sessions in ascending order
         Ok(session_dirs)
     }
 }

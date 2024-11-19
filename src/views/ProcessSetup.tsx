@@ -2,7 +2,7 @@ import { useState } from "react";
 import ProjectDir from "../components/ProcessSetup/ProjectDir";
 import Config from "../components/ProcessSetup/Config";
 import RunScript from "../components/ProcessSetup/RunScript";
-import TedanaReport from "../components/ProcessSetup/TedanaReports";
+import TedanaReport from "../components/ProcessSetup/TedanaReport";
 import { BidsStructure } from "../util/types";
 import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
 

@@ -27,50 +27,48 @@ export default function TedanaReport({
     const findReports = async () => {
       if (!directory) return;
 
-      const options: ReportOption[] = [];
+      try {
+        const options: ReportOption[] = [];
 
-      for (const subject of selectedSubjects) {
-        const sessions = selectedSessions[subject] || [];
-        for (const session of sessions) {
-          const reportPath = await join(
-            directory,
-            subject,
-            session,
-            "tedana",
-            "tedana_report.html"
-          );
-
-          const reportExists = await exists(reportPath);
-
-          if (reportExists) {
-            options.push({
+        for (const subject of selectedSubjects) {
+          const sessions = selectedSessions[subject] || [];
+          for (const session of sessions) {
+            const reportPath = await join(
+              directory,
               subject,
               session,
-              path: reportPath,
-            });
+              "tedana",
+              "tedana_report.html"
+            );
+
+            const reportExists = await exists(reportPath);
+
+            if (reportExists) {
+              options.push({
+                subject,
+                session,
+                path: reportPath,
+              });
+            }
           }
         }
-      }
 
-      setReportOptions(options);
-      if (options.length > 0) {
-        setSelectedReport(`tedana://${options[0].path}`);
-      } else {
-        setError(
-          "No tedana reports found for the selected subjects and sessions."
-        );
+        setReportOptions(options);
+
+        if (options.length > 0) {
+          const initialPath = `tedana:/${options[0].path}`;
+          setSelectedReport(initialPath);
+        }
+      } catch (err) {
+        setError(`Error finding tedana reports: ${err}`);
       }
     };
 
-    findReports().catch((err) => {
-      setError(`Error finding tedana reports: ${err.message}`);
-    });
+    findReports();
   }, [directory, selectedSubjects, selectedSessions]);
 
   const handleReportChange = (path: string) => {
-    // Remove any leading slash and encode the path
-    const normalizedPath = path.replace(/^\//, "");
-    setSelectedReport(`tedana://${encodeURI(normalizedPath)}`);
+    setSelectedReport(`tedana:/${path}`);
   };
 
   return (
@@ -81,14 +79,11 @@ export default function TedanaReport({
           {reportOptions.length > 0 && (
             <select
               className="select select-bordered w-full max-w-xs"
-              value={selectedReport?.replace("tedana://", "")}
-              onChange={(e) => {
-                console.log("Selected path:", e.target.value); // Debug log
-                handleReportChange(e.target.value);
-              }}
+              value={selectedReport.replace("tedana:/", "")}
+              onChange={(e) => handleReportChange(e.target.value)}
             >
               {reportOptions.map((option, index) => (
-                <option key={index} value={encodeURI(option.path)}>
+                <option key={index} value={option.path}>
                   {`${option.subject} - ${option.session}`}
                 </option>
               ))}
