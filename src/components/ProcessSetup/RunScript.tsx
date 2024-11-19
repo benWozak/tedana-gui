@@ -28,7 +28,7 @@ function RunScript({ output, loading, onExecute, onKill }: Props) {
   return (
     <div className="card bg-base-300">
       <div className="card-body">
-        <div className="card-title flex justify-between items-center mb-4">
+        <div className="card-title flex justify-between items-center">
           <h2 className="text-xl font-bold mb-4">
             {loading ? "Running Tedana" : "Tedana Execution Complete"}
             {loading && (
@@ -41,28 +41,35 @@ function RunScript({ output, loading, onExecute, onKill }: Props) {
             </button>
           )}
         </div>
-        <div
-          className="mockup-code h-96 overflow-y-auto overflow-x-hidden"
+        <section
+          className="mockup-code relative h-96 overflow-x-hidden"
           ref={outputRef}
         >
-          {output.map((line, index) => (
-            <pre key={index} data-prefix={index + 1} className={`text-sm`}>
-              <code
-                style={
-                  line.content.includes("RuntimeError") ||
-                  line.content.includes("Execution error")
-                    ? { color: "red" }
-                    : line.content.includes("WARNING")
-                    ? { color: "yellow" }
-                    : { color: "#66cc8a" }
-                }
-                className={`text-wrap`}
-              >
-                {line.content}
-              </code>
-            </pre>
-          ))}
-        </div>
+          <div className="h-80 overflow-y-auto">
+            {output.map((line, index) => (
+              <div className="flex">
+                <pre
+                  key={index}
+                  data-prefix={index + 1}
+                  className={`text-sm`}
+                ></pre>
+                <code
+                  style={
+                    line.content.includes("RuntimeError") ||
+                    line.content.includes("Execution error")
+                      ? { color: "red" }
+                      : line.content.includes("WARNING")
+                      ? { color: "yellow" }
+                      : { color: "#66cc8a" }
+                  }
+                  className={`text-wrap pr-8`}
+                >
+                  {line.content}
+                </code>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

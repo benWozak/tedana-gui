@@ -24,6 +24,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
   useEffect(() => {
     const workingDirectory = localStorage.getItem("workingDirectory");
     const fileConvention = localStorage.getItem("fileConvention");
+
     if (workingDirectory) setSelectedPath(workingDirectory);
     if (fileConvention) setConventionString(fileConvention);
   }, []);
@@ -99,7 +100,15 @@ function ProjectDir({ onSuccessCallback }: Props) {
     <div className="card bg-base-300">
       <div className="card-body">
         <div className="card-title">
-          <h2 className="text-2xl font-bold mb-4">Directory Selection</h2>
+          <h2 className="text-2xl font-bold">Directory Selection</h2>
+        </div>
+
+        <div className="flex gap-12">
+          <DirectorySelector
+            label="Input Directory"
+            onSelect={handleInputDirSelect}
+            path={localStorage.getItem("workingDirectory")}
+          />
         </div>
 
         <InfoBlock
@@ -118,15 +127,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
           }
         />
 
-        <div className="flex gap-12">
-          <DirectorySelector
-            label="Input Directory"
-            onSelect={handleInputDirSelect}
-            path={localStorage.getItem("workingDirectory")}
-          />
-        </div>
-
-        <div className="mt-4 w-full">
+        <div className="w-full">
           <div className="mt-4">
             <h3 className="text-xl mb-2">File convention</h3>
             <Input
