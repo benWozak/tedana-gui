@@ -17,10 +17,18 @@
         "asset": true,
         "assetScope": ["**"]
       },
+
       "shell": {
         "all": true,
         "execute": true,
         "sidecar": true,
+        "scope": [
+          {
+            "name": "open",
+            "cmd": "open",
+            "args": true
+          }
+        ],
         "open": true
       },
       "fs": {

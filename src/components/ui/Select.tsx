@@ -5,6 +5,7 @@ type Props = {
   value: string | null;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   name: string;
+  size?: "sx" | "sm" | "md" | "lg" | "xl" | "2xl";
 };
 
 export function Select({
@@ -14,10 +15,11 @@ export function Select({
   value,
   onChange,
   name,
+  size,
 }: Props) {
   return (
     <select
-      className="select select-bordered w-full max-w-xs"
+      className={`select select-bordered w-full max-w-${size ? size : "xs"}`}
       disabled={disabled}
       value={value || ""}
       onChange={!!onChange ? (e) => onChange(e) : undefined}
