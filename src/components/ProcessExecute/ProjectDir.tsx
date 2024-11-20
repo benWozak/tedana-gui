@@ -164,7 +164,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
                   .
                 </p>
                 <p className="mt-4">
-                  Tedana-GUI will look for files that include the text{" "}
+                  tedana-app will look for files that include the text{" "}
                   <i className="text-secondary">"_echo-[1...5]-"</i> plus the
                   input you include below.
                 </p>

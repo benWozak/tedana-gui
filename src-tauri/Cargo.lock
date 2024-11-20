@@ -3318,7 +3318,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tedana-gui"
+name = "tedana-app"
 version = "0.1.0"
 dependencies = [
  "dark-light",

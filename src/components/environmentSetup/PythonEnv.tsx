@@ -9,11 +9,37 @@ function PythonPathDir({}: Props) {
   const [pythonPath, setPythonPath] = useState<string>("");
   const [tedanaStatus, setTedanaStatus] = useState<string>("Not checked");
 
+  const runTedanaCheck = async (path: string) => {
+    setTedanaStatus("Checking...");
+    try {
+      const envPath = await getEnvironmentPath(path);
+
+      const installCheck = await invoke("check_tedana_installation", {
+        pythonPath: path,
+        environmentPath: envPath,
+      });
+
+      const versionCheck = await invoke("run_tedana_command", {
+        pythonPath: path,
+        commandArgs: "--version",
+      });
+
+      setTedanaStatus(
+        `Tedana version ${installCheck} installed. CLI accessible: ${versionCheck}`
+      );
+    } catch (error) {
+      console.error("Error checking tedana:", error);
+      setTedanaStatus(
+        "Tedana not found. Please check your installation and Python path."
+      );
+    }
+  };
+
   useEffect(() => {
     const storedPath = localStorage.getItem("pythonPath");
     if (storedPath) {
       setPythonPath(storedPath);
-      checkTedanaInstallation(storedPath);
+      runTedanaCheck(storedPath);
     }
   }, []);
 
@@ -25,50 +51,13 @@ function PythonPathDir({}: Props) {
     localStorage.setItem("pythonPath", pythonPath);
     const envPath = await getEnvironmentPath(pythonPath);
     localStorage.setItem("environmentPath", envPath);
-    checkTedanaInstallation(pythonPath);
+    await runTedanaCheck(pythonPath);
   };
 
   const getEnvironmentPath = async (path: string): Promise<string> => {
-    // Get the directory of the Python executable
     const pythonDir = await dirname(path);
-    // Get the parent directory, which should be the environment root
     const envPath = await dirname(pythonDir);
     return envPath;
-  };
-
-  const checkTedanaInstallation = async (path: string) => {
-    setTedanaStatus("Checking...");
-    try {
-      const envPath = await getEnvironmentPath(path);
-      const version = await invoke("check_tedana_installation", {
-        pythonPath: path,
-        environmentPath: envPath,
-      });
-      setTedanaStatus(`Tedana version ${version} installed`);
-      await runTedana(path);
-    } catch (error) {
-      console.error("Error checking tedana installation:", error);
-      setTedanaStatus(
-        "Tedana not found. Please check your installation and Python path."
-      );
-    }
-  };
-
-  const runTedana = async (path: string) => {
-    try {
-      const result = await invoke("run_tedana_command", {
-        pythonPath: path,
-        commandArgs: "--version",
-      });
-      setTedanaStatus(
-        (prevStatus) => `${prevStatus}. Tedana CLI accessible: ${result}`
-      );
-    } catch (error) {
-      console.error("Error running tedana:", error);
-      setTedanaStatus(
-        (prevStatus) => `${prevStatus}. Error accessing Tedana CLI: ${error}`
-      );
-    }
   };
 
   return (
