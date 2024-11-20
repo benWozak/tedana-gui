@@ -29,7 +29,7 @@ function RunScript({ output, loading, onExecute, onKill }: Props) {
     <div className="card bg-base-300">
       <div className="card-body">
         <div className="card-title flex justify-between items-center">
-          <h2 className="text-xl font-bold mb-4">
+          <h2 className="text-xl font-bold mb-4 flex">
             {loading ? "Running Tedana" : "Tedana Execution Complete"}
             {loading && (
               <span className="loading loading-dots loading-md ml-2"></span>
@@ -41,11 +41,8 @@ function RunScript({ output, loading, onExecute, onKill }: Props) {
             </button>
           )}
         </div>
-        <section
-          className="mockup-code relative h-96 overflow-x-hidden"
-          ref={outputRef}
-        >
-          <div className="h-80 overflow-y-auto">
+        <section className="mockup-code relative h-96 overflow-x-hidden">
+          <div ref={outputRef} className="h-80 overflow-y-auto">
             {output.map((line, index) => (
               <div className="flex">
                 <pre

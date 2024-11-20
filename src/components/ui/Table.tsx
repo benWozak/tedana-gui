@@ -5,7 +5,7 @@ type Props = {
 
 export const Table = ({ columns, data }: Props) => {
   return (
-    <div className="overflow-x-auto border rounded px-2">
+    <div className="overflow-x-auto border rounded-md px-4 py-2">
       <table className="table table-xs table-pin-rows table-pin-cols">
         <thead>
           <tr>

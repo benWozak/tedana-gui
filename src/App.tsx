@@ -9,7 +9,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 const Home = lazy(() => import("./views/Home"));
 const Installation = lazy(() => import("./views/Installation"));
 const EnvironmentSetup = lazy(() => import("./views/EnvironmentSetup"));
-const ProcessSetup = lazy(() => import("./views/ProcessSetup"));
+const ProcessSetup = lazy(() => import("./views/ProcessExecute"));
 const ReportViewer = lazy(() => import("./views/ReportViewer"));
 
 function App() {

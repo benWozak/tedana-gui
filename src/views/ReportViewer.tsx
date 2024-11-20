@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { BidsStructure } from "../util/types";
-import TedanaReport from "../components/ProcessSetup/TedanaReport";
+import TedanaReport from "../components/ProcessExecute/TedanaReport";
 
 const ReportViewer = () => {
   const [directory, setDirectory] = useState<string>("");
@@ -27,6 +27,7 @@ const ReportViewer = () => {
       }
 
       setDirectory(workingDir);
+
       try {
         const structure: BidsStructure = await invoke(
           "extract_bids_structure",

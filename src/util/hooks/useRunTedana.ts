@@ -3,24 +3,24 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { listen } from '@tauri-apps/api/event';
 import useStore from '../../store/useStore';
 
-export function useTedanaExecution() {
+export function useRunTedana() {
   const [output, setOutput] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { commandExecutable } = useStore();
   const pythonPath = localStorage.getItem('pythonPath');
 
   useEffect(() => {
-    const unlisten1 = listen('tedana-output', (event: any) => {
+    const output = listen('tedana-output', (event: any) => {
       setOutput(prev => [...prev, { content: event.payload as string, isError: false }]);
     });
 
-    const unlisten2 = listen('tedana-error', (event: any) => {
+    const error = listen('tedana-error', (event: any) => {
       setOutput(prev => [...prev, { content: event.payload as string, isError: true }]);
     });
 
     return () => {
-      unlisten1.then(f => f());
-      unlisten2.then(f => f());
+      output.then(f => f());
+      error.then(f => f());
     };
   }, []);
 

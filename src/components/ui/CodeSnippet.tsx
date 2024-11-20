@@ -32,9 +32,12 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({ code, language }) => {
       <div className="badge badge-ghost absolute top-8 left-3 btn btn-ghost btn-xs">
         {language}
       </div>
-      <pre data-prefix={language === "Python" ? "~" : "$"}>
-        <code ref={codeRef}>{code}</code>
-      </pre>
+      <div className="flex">
+        <pre data-prefix={language === "Python" ? "~" : "$"}> </pre>
+        <code ref={codeRef} className=" pr-8">
+          {code}
+        </code>
+      </div>
       <button
         onClick={handleCopy}
         className={`absolute top-2 right-2 btn btn-ghost btn-xs ${

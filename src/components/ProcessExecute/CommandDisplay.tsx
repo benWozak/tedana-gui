@@ -70,7 +70,7 @@ const CommandDisplay = ({ config }: Props) => {
     setCommandExecutable(command);
   }, [config]);
 
-  return <>{generateCommand(config)}</>;
+  return generateCommand(config);
 };
 
 export default CommandDisplay;

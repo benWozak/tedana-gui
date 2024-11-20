@@ -1,10 +1,10 @@
 import { useState } from "react";
-import ProjectDir from "../components/ProcessSetup/ProjectDir";
-import Config from "../components/ProcessSetup/Config";
-import RunScript from "../components/ProcessSetup/RunScript";
-import TedanaReport from "../components/ProcessSetup/TedanaReport";
+import ProjectDir from "../components/ProcessExecute/ProjectDir";
+import Config from "../components/ProcessExecute/Config";
+import RunScript from "../components/ProcessExecute/RunScript";
+import TedanaReport from "../components/ProcessExecute/TedanaReport";
 import { BidsStructure } from "../util/types";
-import { useTedanaExecution } from "../util/hooks/useTedanaExecution";
+import { useRunTedana } from "../util/hooks/useRunTedana";
 
 function ProcessSetup() {
   const [activeStep, setActiveStep] = useState(0);
@@ -17,7 +17,7 @@ function ProcessSetup() {
   }>({});
 
   const { output, loading, executeTedanaCommand, killTedanaExecution } =
-    useTedanaExecution();
+    useRunTedana();
 
   const steps = [
     "Working Directory",

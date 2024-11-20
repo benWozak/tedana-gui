@@ -7,7 +7,6 @@ interface StoreState {
   tedanaStatus: string
   commandExecutable: string
 
-  // Define your actions here
   setInputDir: (dir: string) => void
   setOutputDir: (dir: string) => void
   setPythonPath: (path: string) => void

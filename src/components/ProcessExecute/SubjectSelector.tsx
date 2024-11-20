@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 type Props = {
   subjects: { id: number; name: string; sessions: string[] }[];
@@ -31,7 +31,7 @@ const SubjectSelector = ({
 
   return (
     <div className="join join-vertical w-full">
-      {subjects.map((subject) => {
+      {subjects.map((subject, index) => {
         if (!subject) return null;
 
         const isExpanded = expandedSubjects.includes(subject.id);
@@ -39,7 +39,7 @@ const SubjectSelector = ({
 
         return (
           <div
-            key={subject.id}
+            key={index}
             className="collapse collapse-arrow join-item border-base-300 border mb-4"
           >
             <input
@@ -48,7 +48,7 @@ const SubjectSelector = ({
               checked={isExpanded}
               onChange={() => toggleAccordion(subject.id)}
             />
-            <div className="collapse-title text-xl font-medium flex items-center">
+            <div className="collapse-title text-xl font-medium flex items-center py-0 px-4">
               <div
                 className="flex items-center gap-2"
                 onClick={(e) => e.stopPropagation()}
@@ -68,9 +68,9 @@ const SubjectSelector = ({
             </div>
             <div className="collapse-content">
               <div className="ml-6 mt-2">
-                {subject.sessions?.map((session) => (
-                  <>
-                    <div key={session} className="form-control flex-row">
+                {subject.sessions?.map((session, index) => (
+                  <Fragment key={index}>
+                    <div className="form-control flex-row">
                       <label className="label cursor-pointer gap-2">
                         <input
                           type="checkbox"
@@ -84,7 +84,7 @@ const SubjectSelector = ({
                       </label>
                     </div>
                     <hr className=" my-0" />
-                  </>
+                  </Fragment>
                 ))}
               </div>
             </div>

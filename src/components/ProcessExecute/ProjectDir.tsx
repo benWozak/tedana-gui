@@ -149,7 +149,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
                   <a
                     href="https://fmriprep.org/en/stable/"
                     target="_blank"
-                    className="text-primary hover:underline"
+                    className="text-secondary hover:underline"
                   >
                     fMRIPrep
                   </a>{" "}
@@ -157,7 +157,7 @@ function ProjectDir({ onSuccessCallback }: Props) {
                   <a
                     href="https://afni.nimh.nih.gov/pub/dist/doc/program_help/afni_proc.py.html"
                     target="_blank"
-                    className="text-primary hover:underline"
+                    className="text-secondary hover:underline"
                   >
                     afni_proc.py
                   </a>
